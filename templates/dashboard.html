@@ -1,0 +1,2699 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>DINÉVIA - Panel Financiero</title>
+    <!-- Tipografía Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- html2canvas para exportar contenedores/tablas como imágenes JPG -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-subtle: #94a3b8;
+            --primary: #4f46e5; /* Índigo digital moderno */
+            --primary-hover: #4338ca;
+            --primary-light: #eef2ff;
+            --success-bg: #ecfdf5;
+            --success-text: #047857;
+            --success-border: #a7f3d0;
+            --danger-bg: #fef2f2;
+            --danger-text: #b91c1c;
+            --danger-border: #fecaca;
+            --warning-bg: #fffbeb;
+            --warning-text: #b45309;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-subtle: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+            --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -2px rgba(0, 0, 0, 0.02);
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-body);
+            margin: 0;
+            color: var(--text-main);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Layout general con barra lateral */
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Barra Lateral Izquierda (Sidebar) */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-brand {
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid var(--border-color);
+            height: 90px;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        .sidebar-brand img {
+            width: 85%;
+            max-width: 180px;
+            height: auto;
+            object-fit: contain;
+            display: block;
+        }
+
+        .sidebar-menu {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .sidebar-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            background: transparent;
+            border: none;
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-sans);
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-btn:hover {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+        }
+
+        .sidebar-btn.active {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .sidebar-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Contenedor principal ajustado al margen del sidebar */
+        .main-wrapper {
+            flex: 1;
+            margin-left: 260px;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(8px);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        .sidebar-toggle {
+            display: none;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            padding: 8px 10px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            color: var(--text-main);
+            font-size: 1rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .user-info b {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            color: var(--danger-text);
+            background-color: var(--danger-bg);
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+        .logout-btn:hover {
+            opacity: 0.85;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 32px auto;
+            padding: 0 24px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: var(--radius-md);
+            gap: 4px;
+            margin-bottom: 28px;
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 10px 18px;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            flex-grow: 1;
+            text-align: center;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+        }
+
+        .tab-btn.active {
+            background: var(--bg-card);
+            color: var(--text-main);
+            font-weight: 600;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.25s ease-in-out; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .main-view { display: none; }
+        .main-view.active { display: block; animation: fadeIn 0.25s ease-in-out; }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-subtle);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .metric-card:hover {
+            box-shadow: var(--shadow-card);
+        }
+
+        .metric-card.income {
+            background-color: var(--success-bg);
+            border-color: var(--success-border);
+            color: var(--success-text);
+        }
+
+        .metric-card.expense {
+            background-color: var(--danger-bg);
+            border-color: var(--danger-border);
+            color: var(--danger-text);
+        }
+
+        .metric-card label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: inherit;
+            opacity: 0.85;
+        }
+
+        .metric-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-top: 8px;
+            color: inherit;
+        }
+
+        .card {
+            background: var(--bg-card);
+            padding: 28px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-subtle);
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: var(--text-main);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 0;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+            color: #475569;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-card);
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            font-family: var(--font-sans);
+            color: var(--text-main);
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 11px 20px;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+        .btn-primary:active {
+            transform: scale(0.99);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-bg);
+            color: var(--danger-text);
+            border: 1px solid var(--danger-border);
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: opacity 0.2s ease;
+        }
+        .btn-danger:hover {
+            opacity: 0.85;
+        }
+
+        .btn-secondary {
+            background-color: #f1f5f9;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 10px 16px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease;
+        }
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.875rem;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-top: 1px solid var(--border-color);
+        }
+
+        tbody tr {
+            transition: background-color 0.15s ease;
+        }
+
+        tbody tr:hover {
+            background-color: #f8fafc;
+        }
+        
+        .toggle-box {
+            background: var(--bg-card);
+            padding: 18px 24px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        input[type="checkbox"] {
+            accent-color: var(--primary);
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        .notes-grid-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        .notes-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+            padding: 10px 14px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .notes-toolbar-buttons {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn-template {
+            background-color: #ffffff;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.825rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-template:hover {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            border-color: var(--primary-light);
+        }
+
+        .btn-template.active {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .sync-status {
+            font-size: 0.825rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .sync-status.writing { color: var(--warning-text); }
+        .sync-status.saved { color: var(--success-text); }
+        .sync-status.error { color: var(--danger-text); }
+
+        .wysiwyg-editor {
+            min-height: 220px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+            padding: 16px;
+            background-color: var(--bg-card);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text-main);
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .wysiwyg-editor:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .wysiwyg-editor h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin: 12px 0 6px 0;
+            color: var(--text-main);
+        }
+
+        .wysiwyg-editor mark.highlight-yellow {
+            background-color: #fef08a;
+            color: #1e293b;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .wysiwyg-editor .editor-checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 6px 0;
+        }
+
+        .wysiwyg-editor .editor-checklist-item.done span {
+            text-decoration: line-through;
+            color: var(--text-subtle);
+        }
+
+        .notes-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 24px;
+        }
+
+        .note-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            box-shadow: var(--shadow-subtle);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .note-card:hover {
+            box-shadow: var(--shadow-card);
+            transform: translateY(-2px);
+        }
+
+        .note-card-title {
+            font-weight: 600;
+            font-size: 1.05rem;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        .note-card-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .tag-badge {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.7rem;
+        }
+
+        .note-card-content {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 16px;
+            max-height: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+
+        .checklist-item.done span {
+            text-decoration: line-through;
+            color: var(--text-subtle);
+        }
+
+        .calculator-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .calc-display {
+            background: #0f172a;
+            color: #38bdf8;
+            font-family: monospace;
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            text-align: right;
+            font-size: 1.75rem;
+            font-weight: 700;
+            min-height: 48px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            white-space: nowrap;
+            word-break: break-all;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .calc-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .calc-btn {
+            padding: 14px 0;
+            background: #f1f5f9;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: background 0.15s ease;
+            text-align: center;
+        }
+
+        .calc-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .calc-btn.op {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .calc-btn.op:hover {
+            background: #e0e7ff;
+        }
+
+        .calc-btn.action {
+            background: var(--danger-bg);
+            color: var(--danger-text);
+        }
+
+        .calc-btn.equals {
+            background: var(--primary);
+            color: white;
+            grid-column: span 2;
+        }
+
+        .calc-btn.equals:hover {
+            background: var(--primary-hover);
+        }
+
+        /* ESTILOS PARA LOS BOTONES DE DESCARGA Y ZOOM SUTIL */
+        .card-tools {
+            position: absolute;
+            top: 24px;
+            right: 28px;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .tool-btn {
+            background: var(--bg-body);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 5px 10px;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            font-family: var(--font-sans);
+        }
+
+        .tool-btn:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-color: var(--primary-light);
+        }
+
+        /* Capa Modal de Zoom en Pantalla Completa */
+        .zoom-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 32px;
+            box-sizing: border-box;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+
+        .zoom-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .zoom-modal-content {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            width: 100%;
+            max-width: 1100px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: scale(0.95);
+            transition: transform 0.25s ease;
+        }
+
+        .zoom-modal-overlay.active .zoom-modal-content {
+            transform: scale(1);
+        }
+
+        .zoom-modal-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+        }
+
+        .zoom-modal-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-main);
+            margin: 0;
+        }
+
+        .zoom-close-btn {
+            background: var(--danger-bg);
+            color: var(--danger-text);
+            border: 1px solid var(--danger-border);
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .zoom-modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        @media (max-width: 900px) { 
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-wrapper { margin-left: 0; }
+            .sidebar-toggle { display: inline-block; }
+            .charts-container, .metrics-grid, .form-row, .notes-grid-layout { grid-template-columns: 1fr; } 
+            header { padding: 12px 16px; }
+            .container { padding: 0 16px; margin: 16px auto; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- BARRA LATERAL IZQUIERDA (SIDEBAR) -->
+        <aside class="sidebar" id="appSidebar">
+            <div class="sidebar-brand">
+                <img src="{{ url_for('static', filename='dinevia.svg') }}" alt="DINÉVIA Logo">
+            </div>
+            <div class="sidebar-menu">
+                <button class="sidebar-btn active" id="navInicio" onclick="switchMainView('view-inicio')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    Inicio
+                </button>
+                <button class="sidebar-btn" id="navResumen" onclick="switchMainView('view-resumen')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    Resumen Financiero
+                </button>
+                <button class="sidebar-btn" id="navNotas" onclick="switchMainView('view-notas')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    Notas
+                </button>
+                <button class="sidebar-btn" id="navAhorros" onclick="switchMainView('view-ahorros')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 5c-1.5 0-2.8 1.2-3 2.7-.1.8.3 1.6.8 2.2l.2.2c-.2 1.3-1 2.3-2.2 2.7l-.3.1c-.8.2-1.6 0-2.2-.5l-.2-.2C11.3 11.5 10 11 8.5 11 5.5 11 3 13.5 3 16.5V19h18v-2.5c0-3-2.5-5.5-5.5-5.5-.8 0-1.6.2-2.3.6l-.2.1c.3-.8.4-1.7.2-2.6l-.1-.3c-.2-1-.9-1.8-1.9-2.1L15 6.8c.8-.5 1.8-.8 2.8-.8.6 0 1.2.1 1.8.3L20 6.5C19.7 5.6 19.4 5 19 5z"/><circle cx="16" cy="9" r="1"/></svg>
+                    Gestión de Ahorros
+                </button>
+            </div>
+            <div class="sidebar-footer">
+                <span>Plataforma Multiusuario</span>
+            </div>
+        </aside>
+
+        <!-- CONTENEDOR PRINCIPAL DERECHO -->
+        <div class="main-wrapper">
+            <header>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+                    <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Panel Financiero</h1>
+                </div>
+                <div class="user-info">
+                    <span>Hola, <b>{{ name }}</b></span>
+                    <a href="/logout" class="logout-btn">Cerrar Sesión</a>
+                </div>
+            </header>
+
+            <div class="container">
+                <!-- VISTA 1: INICIO (DASHBOARD & PESTAÑAS ORIGINALES) -->
+                <div id="view-inicio" class="main-view active">
+                    <!-- Selector de Periodo Global -->
+                    <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; margin-bottom: 24px;">
+                        <h3 style="margin: 0; font-size: 1rem;">Periodo: <span style="font-weight: 500; color: var(--text-muted);">{{ mes_actual }} {{ anio_actual }}</span></h3>
+                        <form method="GET" action="/" style="display: flex; gap: 10px; margin: 0;">
+                            <input type="hidden" name="tab" id="currentTabInput" value="{{ active_tab }}">
+                            <input type="hidden" name="active_section" id="activeSectionInput" value="inicio">
+                            <select name="mes" onchange="this.form.submit()" style="width: 140px;">
+                                {% for m in meses %}
+                                <option value="{{ m }}" {% if m == mes_actual %}selected{% endif %}>{{ m }}</option>
+                                {% endfor %}
+                            </select>
+                            <select name="anio" onchange="this.form.submit()" style="width: 100px;">
+                                {% for y in range(2026, 2036) %}
+                                <option value="{{ y }}" {% if anio_actual|string == y|string %}selected{% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </div>
+
+                    <!-- Pestañas de Navegación -->
+                    <div class="tabs">
+                        <button class="tab-btn {% if active_tab == 'tab-dashboard' %}active{% endif %}" onclick="switchTab(event, 'tab-dashboard')">Dashboard</button>
+                        <button class="tab-btn {% if active_tab == 'tab-ingresos' %}active{% endif %}" onclick="switchTab(event, 'tab-ingresos')">Mis Ingresos</button>
+                        <button class="tab-btn {% if active_tab == 'tab-gastos' %}active{% endif %}" onclick="switchTab(event, 'tab-gastos')">Mis Gastos</button>
+                        <button class="tab-btn {% if active_tab == 'tab-presupuestos' %}active{% endif %}" onclick="switchTab(event, 'tab-presupuestos')">Presupuestos</button>
+                        <button class="tab-btn {% if active_tab == 'tab-deudas' %}active{% endif %}" onclick="switchTab(event, 'tab-deudas')">Cuentas & Deudas</button>
+                    </div>
+
+                    <!-- 1. DASHBOARD -->
+                    <div id="tab-dashboard" class="tab-content {% if active_tab == 'tab-dashboard' %}active{% endif %}">
+                        <div class="toggle-box">
+                            <div>
+                                <strong style="font-size: 0.9rem;">Incluir remanente del mes anterior</strong>
+                                <div style="font-size: 0.825rem; color: var(--text-muted); margin-top: 2px;">Saldo heredado de {{ mes_anterior }} {{ anio_anterior }}: ${{ "%.2f"|format(saldo_anterior) }}</div>
+                            </div>
+                            <form method="GET" action="/" style="margin:0;">
+                                <input type="hidden" name="mes" value="{{ mes_actual }}">
+                                <input type="hidden" name="anio" value="{{ anio_actual }}">
+                                <input type="hidden" name="tab" value="tab-dashboard">
+                                <input type="hidden" name="active_section" value="inicio">
+                                <input type="checkbox" name="remanente" onchange="this.form.submit()" {% if incluir_remanente %}checked{% endif %}>
+                            </form>
+                        </div>
+
+                        <div class="metrics-grid">
+                            <div class="metric-card income">
+                                <label>Total Ingresos</label>
+                                <div class="value">${{ "%.2f"|format(total_ingresos) }}</div>
+                            </div>
+                            <div class="metric-card expense">
+                                <label>Total Gastos</label>
+                                <div class="value">${{ "%.2f"|format(total_gastos) }}</div>
+                            </div>
+                            <div class="metric-card">
+                                <label>Saldo Neto</label>
+                                <div class="value" style="color: {% if saldo_neto >= 0 %}var(--success-text){% else %}var(--danger-text){% endif %};">
+                                    ${{ "%.2f"|format(saldo_neto) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                            <div class="card">
+                                <h3>Registrar Movimiento</h3>
+                                <form action="/agregar_movimiento" method="POST" enctype="multipart/form-data">
+                                    <input type="hidden" name="tab" value="tab-dashboard">
+                                    <div class="form-group">
+                                        <label>Cargar factura o documento (PDF, TXT, CSV, XLSX)</label>
+                                        <input type="file" name="archivo_factura" accept=".pdf,.txt,.csv,.xlsx">
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Tipo</label>
+                                            <select name="tipo" id="tipoMov" onchange="actualizarCategorias()" required>
+                                                <option value="Ingreso">Ingreso</option>
+                                                <option value="Gasto">Gasto</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Monto (\$)</label>
+                                            <input type="number" step="0.01" name="monto" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Fecha</label>
+                                            <input type="date" name="fecha" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Método de Pago / Cobro</label>
+                                            <select name="metodo">
+                                                <option value="Efectivo">Efectivo</option>
+                                                <option value="Tarjeta de Débito">Tarjeta de Débito</option>
+                                                <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
+                                                <option value="Transferencia">Transferencia</option>
+                                                <option value="Depósito Bancario">Depósito Bancario</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Categoría / Presupuesto</label>
+                                        <select name="categoria" id="selectCategoria"></select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Concepto / Descripción</label>
+                                        <input type="text" name="concepto" placeholder="Ej: Supermercado, Sueldo...">
+                                    </div>
+                                    <button type="submit" class="btn-primary">Guardar Movimiento</button>
+                                </form>
+                            </div>
+
+                            <div class="card" id="cardMovimientosMes">
+                                <div class="card-tools">
+                                    <button type="button" class="tool-btn" onclick="exportarContenedorJPG('cardMovimientosMes', 'movimientos_del_mes.jpg')" title="Exportar JPG">⬇ JPG</button>
+                                    <button type="button" class="tool-btn" onclick="abrirZoom('cardMovimientosMes', 'Movimientos del Mes')" title="Ampliar vista">🗖 Zoom</button>
+                                </div>
+                                <h3>Movimientos del Mes</h3>
+                                {% if movimientos %}
+                                <table id="tablaMovimientosMes">
+                                    <thead>
+                                        <tr><th>Fecha</th><th>Concepto</th><th>Tipo</th><th>Monto</th><th>Acción</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for mov in movimientos %}
+                                        <tr>
+                                            <td>{{ mov.fecha }}</td>
+                                            <td style="font-weight: 500;">{{ mov.concepto or 'Sin concepto' }}</td>
+                                            <td style="color: {% if mov.tipo == 'Ingreso' %}var(--success-text){% else %}var(--danger-text){% endif %}; font-weight: 600;">{{ mov.tipo }}</td>
+                                            <td style="font-weight: 600;">${{ "%.2f"|format(mov.monto) }}</td>
+                                            <td>
+                                                <form action="/eliminar_movimiento/{{ mov.id }}" method="POST" style="margin:0;">
+                                                    <input type="hidden" name="tab" value="tab-dashboard">
+                                                    <button type="submit" class="btn-danger">✕</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                                {% else %}
+                                <p style="color: var(--text-muted); text-align: center; margin-top: 40px; font-size: 0.9rem;">No hay movimientos en este periodo.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- SECCIÓN DE RESUMEN GRÁFICO EN EL DASHBOARD -->
+                        <div class="charts-container">
+                            <!-- Gráfico 1: Ingresos vs Gastos -->
+                            <div class="card" id="cardGraficoIngresosGastos" style="margin-bottom: 0;">
+                                <div class="card-tools">
+                                    <button type="button" class="tool-btn" onclick="exportarGraficoJPG('graficoIngresosGastos', 'ingresos_vs_gastos.jpg')" title="Descargar JPG">⬇ JPG</button>
+                                    <button type="button" class="tool-btn" onclick="abrirZoomGrafico('cardGraficoIngresosGastos', 'Ingresos vs Gastos', 'graficoIngresosGastos')" title="Ampliar vista">🗖 Zoom</button>
+                                </div>
+                                <h3>Ingresos vs Gastos ({{ mes_actual }})</h3>
+                                <div style="position: relative; height: 260px; width: 100%;">
+                                    <canvas id="graficoIngresosGastos"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- Gráfico 2: Límite de Presupuesto vs Utilizado -->
+                            <div class="card" id="cardGraficoPresupuestos" style="margin-bottom: 0;">
+                                <div class="card-tools">
+                                    <button type="button" class="tool-btn" onclick="exportarGraficoJPG('graficoPresupuestos', 'presupuestos_limite_vs_utilizado.jpg')" title="Descargar JPG">⬇ JPG</button>
+                                    <button type="button" class="tool-btn" onclick="abrirZoomGrafico('cardGraficoPresupuestos', 'Presupuestos: Límite vs Utilizado', 'graficoPresupuestos')" title="Ampliar vista">🗖 Zoom</button>
+                                </div>
+                                <h3>Presupuestos: Límite vs Utilizado</h3>
+                                <div style="position: relative; height: 260px; width: 100%;">
+                                    <canvas id="graficoPresupuestos"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. INGRESOS -->
+                    <div id="tab-ingresos" class="tab-content {% if active_tab == 'tab-ingresos' %}active{% endif %}">
+                        <div class="card" id="cardHistorialIngresos">
+                            <div class="card-tools">
+                                <button type="button" class="tool-btn" onclick="exportarContenedorJPG('cardHistorialIngresos', 'historial_de_ingresos.jpg')" title="Exportar JPG">⬇ JPG</button>
+                                <button type="button" class="tool-btn" onclick="abrirZoom('cardHistorialIngresos', 'Historial de Ingresos')" title="Ampliar vista">🗖 Zoom</button>
+                            </div>
+                            <h3>Historial de Ingresos - {{ mes_actual }} {{ anio_actual }}</h3>
+                            {% if movimientos %}
+                            <table id="tablaHistorialIngresos">
+                               <thead><tr><th>Fecha</th><th>Concepto</th><th>Categoría</th><th>Método</th><th>Monto</th></tr></thead>
+                               <tbody>
+                                    {% for mov in movimientos if mov.tipo == 'Ingreso' %}
+                                    <tr>
+                                        <td>{{ mov.fecha }}</td>
+                                        <td style="font-weight: 500;">{{ mov.concepto or 'Sin concepto' }}</td>
+                                        <td>{{ mov.categoria }}</td>
+                                        <td>{{ mov.metodo }}</td>
+                                        <td style="color: var(--success-text); font-weight: 600;">${{ "%.2f"|format(mov.monto) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                               </tbody>
+                            </table>
+                            {% else %}
+                            <p style="color: var(--text-muted); font-size: 0.9rem;">No hay ingresos registrados en este periodo.</p>
+                            {% endif %}
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                            <div class="card">
+                                <h3>Modificación / Eliminación de Ingreso</h3>
+                                <form action="" method="POST" id="formEditarIngreso">
+                                    <input type="hidden" name="tab" value="tab-ingresos">
+                                    <input type="hidden" name="tipo" value="Ingreso">
+                                    <div class="form-group">
+                                        <label>Seleccionar Ingreso</label>
+                                        <select id="selectIngresoEdit" onchange="cargarDatosIngreso(this)">
+                                            <option value="">-- Seleccionar --</option>
+                                            {% for mov in movimientos if mov.tipo == 'Ingreso' %}
+                                            <option value="{{ mov.id }}" data-fecha="{{ mov.fecha }}" data-concepto="{{ mov.concepto }}" data-categoria="{{ mov.categoria }}" data-metodo="{{ mov.metodo }}" data-monto="{{ mov.monto }}">{{ mov.fecha }} | {{ mov.concepto or 'Sin concepto' }} (${{ mov.monto }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Fecha</label>
+                                        <input type="date" name="fecha" id="editIngFecha" required>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Monto (\$)</label>
+                                            <input type="number" step="0.01" name="monto" id="editIngMonto" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Método</label>
+                                            <select name="metodo" id="editIngMetodo">
+                                                <option value="Efectivo">Efectivo</option>
+                                                <option value="Tarjeta de Débito">Tarjeta de Débito</option>
+                                                <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
+                                                <option value="Transferencia">Transferencia</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Categoría</label>
+                                        <select name="categoria" id="editIngCat">
+                                            {% for ci in categorias_ingreso %}
+                                            <option value="{{ ci.categoria }}">{{ ci.categoria }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Concepto</label>
+                                        <input type="text" name="concepto" id="editIngConcepto">
+                                    </div>
+                                    <div style="display: flex; gap: 10px;">
+                                        <button type="submit" class="btn-secondary" style="flex: 1;">Guardar Cambios</button>
+                                        <button type="submit" formaction="" id="btnEliminarIngreso" class="btn-danger" style="flex: 1;">Eliminar</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="card">
+                                <h3>Gestionar Categorías de Ingresos</h3>
+                                <form action="/agregar_categoria_ingreso" method="POST" style="margin-bottom: 24px;">
+                                    <div class="form-group">
+                                        <label>Nueva Categoría</label>
+                                        <input type="text" name="categoria" placeholder="Ej: Freelance, Venta" required>
+                                    </div>
+                                    <button type="submit" class="btn-primary">Añadir Categoría</button>
+                                </form>
+
+                                <form action="/eliminar_categoria_ingreso" method="POST">
+                                    <div class="form-group">
+                                        <label>Eliminar Categoría</label>
+                                        <select name="categoria">
+                                            {% for ci in categorias_ingreso %}
+                                            <option value="{{ ci.categoria }}">{{ ci.categoria }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn-danger" style="width:100%;">Borrar Categoría</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. GASTOS -->
+                    <div id="tab-gastos" class="tab-content {% if active_tab == 'tab-gastos' %}active{% endif %}">
+                        <div class="card" id="cardHistorialGastos">
+                            <div class="card-tools">
+                                <button type="button" class="tool-btn" onclick="exportarContenedorJPG('cardHistorialGastos', 'historial_de_gastos.jpg')" title="Exportar JPG">⬇ JPG</button>
+                                <button type="button" class="tool-btn" onclick="abrirZoom('cardHistorialGastos', 'Historial de Gastos')" title="Ampliar vista">🗖 Zoom</button>
+                            </div>
+                            <h3>Historial de Gastos - {{ mes_actual }} {{ anio_actual }}</h3>
+                            {% if movimientos %}
+                            <table id="tablaHistorialGastos">
+                               <thead><tr><th>Fecha</th><th>Concepto</th><th>Presupuesto</th><th>Método</th><th>Monto</th></tr></thead>
+                               <tbody>
+                                    {% for mov in movimientos if mov.tipo == 'Gasto' %}
+                                    <tr>
+                                        <td>{{ mov.fecha }}</td>
+                                        <td style="font-weight: 500;">{{ mov.concepto or 'Sin concepto' }}</td>
+                                        <td>{{ mov.categoria }}</td>
+                                        <td>{{ mov.metodo }}</td>
+                                        <td style="color: var(--danger-text); font-weight: 600;">-${{ "%.2f"|format(mov.monto) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                               </tbody>
+                            </table>
+                            {% else %}
+                            <p style="color: var(--text-muted); font-size: 0.9rem;">No hay gastos registrados en este periodo.</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="card" style="max-width: 600px; margin: 0 auto;">
+                            <h3>Modificación / Eliminación de Gasto</h3>
+                            <form action="" method="POST" id="formEditarGasto">
+                                <input type="hidden" name="tab" value="tab-gastos">
+                                <input type="hidden" name="tipo" value="Gasto">
+                                <div class="form-group">
+                                    <label>Seleccionar Gasto</label>
+                                    <select id="selectGastoEdit" onchange="cargarDatosGasto(this)">
+                                        <option value="">-- Seleccionar --</option>
+                                        {% for mov in movimientos if mov.tipo == 'Gasto' %}
+                                        <option value="{{ mov.id }}" data-fecha="{{ mov.fecha }}" data-concepto="{{ mov.concepto }}" data-categoria="{{ mov.categoria }}" data-metodo="{{ mov.metodo }}" data-monto="{{ mov.monto }}">{{ mov.fecha }} | {{ mov.concepto or 'Sin concepto' }} (${{ mov.monto }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Fecha</label>
+                                    <input type="date" name="fecha" id="editGasFecha" required>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Monto (\$)</label>
+                                        <input type="number" step="0.01" name="monto" id="editGasMonto" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Método</label>
+                                        <select name="metodo" id="editGasMetodo">
+                                            <option value="Efectivo">Efectivo</option>
+                                            <option value="Tarjeta de Débito">Tarjeta de Débito</option>
+                                            <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
+                                            <option value="Transferencia">Transferencia</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Presupuesto</label>
+                                    <select name="categoria" id="editGasCat">
+                                        {% for p in presupuestos %}
+                                        <option value="{{ p.categoria }}">{{ p.categoria }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Concepto</label>
+                                    <input type="text" name="concepto" id="editGasConcepto">
+                                </div>
+                                <div style="display: flex; gap: 10px;">
+                                    <button type="submit" class="btn-secondary" style="flex: 1;">Guardar Cambios</button>
+                                    <button type="submit" formaction="" id="btnEliminarGasto" class="btn-danger" style="flex: 1;">Eliminar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- 4. PRESUPUESTOS -->
+                    <div id="tab-presupuestos" class="tab-content {% if active_tab == 'tab-presupuestos' %}active{% endif %}">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                            <div class="card">
+                                <h3>Configurar Presupuesto Mensual</h3>
+                                <form action="/agregar_presupuesto" method="POST">
+                                    <input type="hidden" name="mes" value="{{ mes_actual }}">
+                                    <input type="hidden" name="anio" value="{{ anio_actual }}">
+                                    <div class="form-group">
+                                        <label>Seleccionar de Historial o Escribir Nuevo</label>
+                                        <select name="select_historial" id="selectHistorialPresupuesto" onchange="document.getElementById('inputCatPresupuesto').value = this.value;">
+                                            <option value="">-- Nuevo Presupuesto --</option>
+                                            {% for cat_h in nombres_presupuestos_historial %}
+                                            <option value="{{ cat_h }}">{{ cat_h }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Nombre del Presupuesto</label>
+                                        <input type="text" name="categoria" id="inputCatPresupuesto" placeholder="Ej: Comida, Transporte" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Monto Límite (\$)</label>
+                                        <input type="number" step="0.01" name="limite" placeholder="0.00" required>
+                                    </div>
+                                    <button type="submit" class="btn-primary">Establecer Presupuesto</button>
+                                </form>
+                            </div>
+
+                            <div class="card">
+                                <h3>Presupuestos Activos y Modificación</h3>
+                                {% if presupuestos %}
+                                <div class="form-group">
+                                    <label>Seleccionar Presupuesto a Editar</label>
+                                    <select id="selectPresEdit" onchange="cargarDatosPresupuesto(this)">
+                                        <option value="">-- Seleccionar --</option>
+                                        {% for p in presupuestos %}
+                                        <option value="{{ p.id }}" data-categoria="{{ p.categoria }}" data-limite="{{ p.limite }}">{{ p.categoria }} (${{ p.limite }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <form action="" method="POST" id="formEditarPresupuesto" style="margin-bottom: 20px;">
+                                    <div class="form-group">
+                                        <label>Modificar Nombre</label>
+                                        <input type="text" name="categoria" id="editPresCat" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Modificar Límite (\$)</label>
+                                        <input type="number" step="0.01" name="limite" id="editPresLimite" required>
+                                    </div>
+                                    <div style="display: flex; gap: 10px;">
+                                        <button type="submit" class="btn-secondary" style="flex:1;">Actualizar</button>
+                                        <button type="submit" formaction="" id="btnEliminarPres" class="btn-danger" style="flex:1;">Eliminar</button>
+                                    </div>
+                                </form>
+                                {% else %}
+                                <p style="color: var(--text-muted); font-size: 0.9rem;">No hay presupuestos activos en este periodo.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="card" id="cardResumenPresupuestos">
+                            <div class="card-tools">
+                                <button type="button" class="tool-btn" onclick="exportarContenedorJPG('cardResumenPresupuestos', 'presupuestos_vs_gastos.jpg')" title="Exportar JPG">⬇ JPG</button>
+                                <button type="button" class="tool-btn" onclick="abrirZoom('cardResumenPresupuestos', 'Resumen de Presupuestos vs Gastos')" title="Ampliar vista">🗖 Zoom</button>
+                            </div>
+                            <h3>Resumen de Presupuestos vs Gastos - {{ mes_actual }} {{ anio_actual }}</h3>
+                            {% if presupuestos_detallados %}
+                            <table id="tablaResumenPresupuestos">
+                               <thead>
+                                    <tr>
+                                        <th>Presupuesto / Categoría</th>
+                                        <th>Monto Límite</th>
+                                        <th>Gastado Real</th>
+                                        <th>Saldo Disponible</th>
+                                    </tr>
+                               </thead>
+                               <tbody>
+                                    {% for pd in presupuestos_detallados %}
+                                    <tr>
+                                        <td style="font-weight: 600;">{{ pd.categoria }}</td>
+                                        <td>${{ "%.2f"|format(pd.limite) }}</td>
+                                        <td style="color: var(--danger-text);">-${{ "%.2f"|format(pd.gastado) }}</td>
+                                        <td style="color: {% if pd.saldo >= 0 %}var(--success-text){% else %}var(--danger-text){% endif %}; font-weight: 700;">
+                                            ${{ "%.2f"|format(pd.saldo) }}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                               </tbody>
+                               <tfoot>
+                                    {% set total_limite = presupuestos_detallados | map(attribute='limite') | sum %}
+                                    {% set total_gastado = presupuestos_detallados | map(attribute='gastado') | sum %}
+                                    {% set total_saldo = presupuestos_detallados | map(attribute='saldo') | sum %}
+                                    <tr style="border-top: 2px solid var(--border-color); background-color: #f8fafc;">
+                                        <td style="font-weight: 700;">TOTAL</td>
+                                        <td style="font-weight: 700;">${{ "%.2f"|format(total_limite) }}</td>
+                                        <td style="font-weight: 700; color: var(--danger-text);">-${{ "%.2f"|format(total_gastado) }}</td>
+                                        <td style="font-weight: 700; color: {% if total_saldo >= 0 %}var(--success-text){% else %}var(--danger-text){% endif %};">
+                                            ${{ "%.2f"|format(total_saldo) }}
+                                        </td>
+                                    </tr>
+                               </tfoot>
+                            </table>
+                            {% else %}
+                            <p style="color: var(--text-muted); font-size: 0.9rem;">No hay presupuestos configurados para este mes.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- 5. DEUDAS Y ABONOS -->
+                    <div id="tab-deudas" class="tab-content {% if active_tab == 'tab-deudas' %}active{% endif %}">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                            <div class="card">
+                                <h3>Registrar Nueva Deuda</h3>
+                                <form action="/agregar_deuda" method="POST">
+                                    <div class="form-group">
+                                        <label>Descripción / A quién se debe</label>
+                                        <input type="text" name="descripcion" placeholder="Ej: Banco, Préstamo" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Monto Inicial (\$)</label>
+                                        <input type="number" step="0.01" name="monto" placeholder="0.00" required>
+                                    </div>
+                                    <button type="submit" class="btn-primary">Guardar Deuda</button>
+                                </form>
+
+                                <h3 style="margin-top: 32px;">Registrar Abono a Deuda</h3>
+                                <form action="/agregar_abono" method="POST">
+                                    <div class="form-group">
+                                        <label>Seleccionar Deuda</label>
+                                        <select name="deuda_id" required>
+                                            {% for dd in deudas_detalladas %}
+                                            <option value="{{ dd.id }}">{{ dd.descripcion }} (Saldo Pendiente: ${{ "%.2f"|format(dd.saldo_pendiente) }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Monto del Abono (\$)</label>
+                                        <input type="number" step="0.01" name="monto" placeholder="0.00" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Fecha del Abono</label>
+                                        <input type="date" name="fecha" required>
+                                    </div>
+                                    <button type="submit" class="btn-primary">Registrar Abono</button>
+                                </form>
+                            </div>
+
+                            <div class="card">
+                                <h3>Modificación de Deudas</h3>
+                                {% if deudas %}
+                                <div class="form-group">
+                                    <label>Seleccionar Deuda</label>
+                                    <select id="selectDeudaEdit" onchange="cargarDatosDeuda(this)">
+                                        <option value="">-- Seleccionar --</option>
+                                        {% for d in deudas %}
+                                        <option value="{{ d.id }}" data-desc="{{ d.descripcion }}" data-monto="{{ d.monto_inicial }}">{{ d.descripcion }} (${{ d.monto_inicial }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <form action="" method="POST" id="formEditarDeuda" style="margin-bottom: 24px;">
+                                    <div class="form-group">
+                                        <label>Descripción</label>
+                                        <input type="text" name="descripcion" id="editDeudaDesc" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Monto Inicial (\$)</label>
+                                        <input type="number" step="0.01" name="monto_inicial" id="editDeudaMonto" required>
+                                    </div>
+                                    <div style="display: flex; gap: 10px;">
+                                        <button type="submit" class="btn-secondary" style="flex:1;">Actualizar Deuda</button>
+                                        <button type="submit" formaction="" id="btnEliminarDeuda" class="btn-danger" style="flex:1;">Eliminar Deuda</button>
+                                    </div>
+                                </form>
+                                {% else %}
+                                <p style="color: var(--text-muted); font-size: 0.9rem;">No hay deudas registradas.</p>
+                                {% endif %}
+
+                                <h3>Modificación de Abonos</h3>
+                                {% if abonos %}
+                                <div class="form-group">
+                                    <label>Seleccionar Abono</label>
+                                    <select id="selectAbonoEdit" onchange="cargarDatosAbono(this)">
+                                        <option value="">-- Seleccionar --</option>
+                                        {% for ab in abonos %}
+                                        <option value="{{ ab.id }}" data-fecha="{{ ab.fecha }}" data-monto="{{ ab.monto }}" data-deudaid="{{ ab.deuda_id }}">{{ ab.fecha }} - ${{ ab.monto }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <form action="" method="POST" id="formEditarAbono">
+                                    <div class="form-group">
+                                        <label>Fecha</label>
+                                        <input type="date" name="fecha" id="editAbonoFecha" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Deuda Asociada</label>
+                                        <select name="deuda_id" id="editAbonoDeudaId">
+                                            {% for d in deudas %}
+                                            <option value="{{ d.id }}">{{ d.descripcion }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Monto del Abono (\$)</label>
+                                        <input type="number" step="0.01" name="monto" id="editAbonoMonto" required>
+                                    </div>
+                                    <div style="display: flex; gap: 10px;">
+                                        <button type="submit" class="btn-secondary" style="flex:1;">Actualizar Abono</button>
+                                        <button type="submit" formaction="" id="btnEliminarAbono" class="btn-danger" style="flex:1;">Eliminar Abono</button>
+                                    </div>
+                                </form>
+                                {% else %}
+                                <p style="color: var(--text-muted); font-size: 0.9rem;">No hay abonos registrados.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="card" id="cardEstadoDeudas">
+                            <div class="card-tools">
+                                <button type="button" class="tool-btn" onclick="exportarContenedorJPG('cardEstadoDeudas', 'estado_cuentas_y_deudas.jpg')" title="Exportar JPG">⬇ JPG</button>
+                                <button type="button" class="tool-btn" onclick="abrirZoom('cardEstadoDeudas', 'Estado General de Cuentas & Deudas')" title="Ampliar vista">🗖 Zoom</button>
+                            </div>
+                            <h3>Estado General de Cuentas & Deudas</h3>
+                            {% if deudas_detalladas %}
+                            <table id="tablaEstadoDeudas">
+                               <thead>
+                                    <tr>
+                                        <th>Descripción / Deuda</th>
+                                        <th>Monto Total (Debe)</th>
+                                        <th>Total Abonado</th>
+                                        <th>Saldo Pendiente</th>
+                                    </tr>
+                               </thead>
+                               <tbody>
+                                    {% for dd in deudas_detalladas %}
+                                    <tr>
+                                        <td style="font-weight: 600;">{{ dd.descripcion }}</td>
+                                        <td>${{ "%.2f"|format(dd.monto_inicial) }}</td>
+                                        <td style="color: var(--success-text);">${{ "%.2f"|format(dd.total_abonos) }}</td>
+                                        <td style="color: var(--danger-text); font-weight: 700;">${{ "%.2f"|format(dd.saldo_pendiente) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                               </tbody>
+                            </table>
+                            {% else %}
+                            <p style="color: var(--text-muted); font-size: 0.9rem;">¡Felicidades! No posees deudas registradas.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN "RESUMEN FINANCIERO" -->
+                <div id="view-resumen" class="main-view">
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                            <h3 style="margin: 0;">Resumen Analítico Histórico</h3>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <select id="filtroTipoResumen" onchange="actualizarResumenFinanciero()" style="width: 130px;">
+                                    <option value="mensual">Mensual</option>
+                                    <option value="anual">Anual</option>
+                                </select>
+                                <select id="filtroMesResumen" onchange="actualizarResumenFinanciero()" style="width: 130px;">
+                                    {% for m in meses %}
+                                    <option value="{{ m }}" {% if m == mes_actual %}selected{% endif %}>{{ m }}</option>
+                                    {% endfor %}
+                                </select>
+                                <select id="filtroAnioResumen" onchange="actualizarResumenFinanciero()" style="width: 100px;">
+                                    {% for y in range(2026, 2036) %}
+                                    <option value="{{ y }}" {% if anio_actual|string == y|string %}selected{% endif %}>{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0;">Analiza el desglose detallado de tus ingresos por categoría y tus gastos por presupuesto basados en los filtros seleccionados.</p>
+                    </div>
+
+                    <div class="charts-container">
+                        <div class="card" id="cardGraficoIngresosCategoria" style="margin-bottom: 0;">
+                            <div class="card-tools">
+                                <button type="button" class="tool-btn" onclick="exportarGraficoJPG('graficoIngresosCategoria', 'ingresos_por_categoria.jpg')" title="Descargar JPG">⬇ JPG</button>
+                                <button type="button" class="tool-btn" onclick="abrirZoomGrafico('cardGraficoIngresosCategoria', 'Ingresos por Categoría', 'graficoIngresosCategoria')" title="Ampliar vista">🗖 Zoom</button>
+                            </div>
+                            <h3>Ingresos por Categoría</h3>
+                            <div style="position: relative; height: 280px; width: 100%;">
+                                <canvas id="graficoIngresosCategoria"></canvas>
+                            </div>
+                        </div>
+                        <div class="card" id="cardGraficoGastosPresupuesto" style="margin-bottom: 0;">
+                            <div class="card-tools">
+                                <button type="button" class="tool-btn" onclick="exportarGraficoJPG('graficoGastosPresupuesto', 'gastos_por_presupuesto.jpg')" title="Descargar JPG">⬇ JPG</button>
+                                <button type="button" class="tool-btn" onclick="abrirZoomGrafico('cardGraficoGastosPresupuesto', 'Gastos por Presupuesto', 'graficoGastosPresupuesto')" title="Ampliar vista">🗖 Zoom</button>
+                            </div>
+                            <h3>Gastos por Presupuesto</h3>
+                            <div style="position: relative; height: 280px; width: 100%;">
+                                <canvas id="graficoGastosPresupuesto"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN "NOTAS" -->
+                <div id="view-notas" class="main-view">
+                    <div class="notes-grid-layout">
+                        <!-- LADO IZQUIERDO: EDITOR Y CRUD DE NOTAS -->
+                        <div>
+                            <div class="card">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                    <h3 style="margin: 0;" id="editorTitle">Crear Nueva Nota</h3>
+                                    <button type="button" class="btn-secondary" onclick="limpiarFormularioNota()">+ Nueva Nota</button>
+                                </div>
+                                
+                                <form id="formNota" onsubmit="guardarNotaProcesada(event)">
+                                    <input type="hidden" id="notaId" value="">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Título</label>
+                                            <input type="text" id="notaTitulo" placeholder="Ej: Plan de ahorro Q4" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Fecha</label>
+                                            <input type="date" id="notaFecha">
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Etiquetas (separadas por coma)</label>
+                                            <input type="text" id="notaEtiquetas" placeholder="Ej: Ahorro, Metas, URGENTE">
+                                        </div>
+                                        <div class="form-group" style="display: flex; align-items: center; margin-top: 24px;">
+                                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600;">
+                                                <input type="checkbox" id="notaEsChecklist" onchange="toggleFormatoChecklist(this.checked)">
+                                                Modo Lista de Tareas (Checklist)
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Barra de herramientas de formato -->
+                                    <div class="notes-toolbar">
+                                        <div class="notes-toolbar-buttons">
+                                            <button type="button" class="btn-template" onclick="aplicarFormato('negrita')" title="Negrita"><b>B</b></button>
+                                            <button type="button" class="btn-template" onclick="aplicarFormato('resaltado')" title="Resaltado con fondo amarillo"><span style="background: #fef08a; color: #1e293b; padding: 0 4px; border-radius: 2px;">H</span></button>
+                                            <button type="button" class="btn-template" onclick="aplicarFormato('titulo')" title="Título H2">H2</button>
+                                            <button type="button" class="btn-template" onclick="inyectarPlantillaNota('deseos')">✨ Lista Deseos</button>
+                                            <button type="button" class="btn-template" onclick="inyectarPlantillaNota('impulso')">🤔 Control Impulso</button>
+                                        </div>
+                                        <div id="syncStatusNotas" class="sync-status saved">
+                                            ✓ Guardado
+                                        </div>
+                                    </div>
+
+                                    <!-- Editor ContentEditable Moderno -->
+                                    <div class="form-group" style="margin-bottom: 20px;">
+                                        <div id="notaContenidoEditor" class="wysiwyg-editor" contenteditable="true" data-placeholder="Escribe tu nota aquí o gestiona tus tareas..."></div>
+                                    </div>
+
+                                    <button type="submit" class="btn-primary" id="btnGuardarNota">Guardar Nota</button>
+                                </form>
+                            </div>
+
+                            <!-- CRUD: GRID DE NOTAS GUARDADAS -->
+                            <div class="card">
+                                <h3>Notas Guardadas</h3>
+                                <div id="contenedorTarjetasNotas" class="notes-cards-grid">
+                                    <!-- Las tarjetas se generan dinámicamente -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- LADO DERECHO: WIDGET CALCULADORA VISUAL INTACTA -->
+                        <div>
+                            <div class="calculator-card">
+                                <h3>Calculadora Financiera</h3>
+                                <div class="calc-display" id="calcDisplay">0</div>
+                                <div class="calc-buttons">
+                                    <button type="button" class="calc-btn action" onclick="calcClear()">C</button>
+                                    <button type="button" class="calc-btn action" onclick="calcBackspace()">⌫</button>
+                                    <button type="button" class="calc-btn op" onclick="calcOp('/')">÷</button>
+                                    <button type="button" class="calc-btn op" onclick="calcOp('*')">×</button>
+
+                                    <button type="button" class="calc-btn" onclick="calcNum('7')">7</button>
+                                    <button type="button" class="calc-btn" onclick="calcNum('8')">8</button>
+                                    <button type="button" class="calc-btn" onclick="calcNum('9')">9</button>
+                                    <button type="button" class="calc-btn op" onclick="calcOp('-')">-</button>
+
+                                    <button type="button" class="calc-btn" onclick="calcNum('4')">4</button>
+                                    <button type="button" class="calc-btn" onclick="calcNum('5')">5</button>
+                                    <button type="button" class="calc-btn" onclick="calcNum('6')">6</button>
+                                    <button type="button" class="calc-btn op" onclick="calcOp('+')">+</button>
+
+                                    <button type="button" class="calc-btn" onclick="calcNum('1')">1</button>
+                                    <button type="button" class="calc-btn" onclick="calcNum('2')">2</button>
+                                    <button type="button" class="calc-btn" onclick="calcNum('3')">3</button>
+                                    <button type="button" class="calc-btn equals" onclick="calcCalculate()">=</button>
+
+                                    <button type="button" class="calc-btn" onclick="calcNum('0')" style="grid-column: span 2;">0</button>
+                                    <button type="button" class="calc-btn" onclick="calcNum('.')">.</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN "GESTIÓN DE AHORROS" -->
+                <div id="view-ahorros" class="main-view">
+                    <!-- Métricas Principales de Ahorros -->
+                    <div class="metrics-grid">
+                        <div class="metric-card income">
+                            <label>Total Ahorrado en Cuentas</label>
+                            {% set total_cuentas = cuentas_ahorro | map(attribute='saldo_actual') | sum %}
+                            <div class="value">${{ "%.2f"|format(total_cuentas) }}</div>
+                        </div>
+                        <div class="metric-card">
+                            <label>Total Destinado a Metas</label>
+                            {% set total_metas = metas_ahorro | map(attribute='monto_actual') | sum %}
+                            <div class="value" style="color: var(--primary);">${{ "%.2f"|format(total_metas) }}</div>
+                        </div>
+                        <div class="metric-card">
+                            <label>Objetivo Total de Metas</label>
+                            {% set total_objetivo = metas_ahorro | map(attribute='monto_objetivo') | sum %}
+                            <div class="value">${{ "%.2f"|format(total_objetivo) }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Disposición en 2 Columnas -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                        <!-- Columna Izquierda: Formularios de Registro -->
+                        <div>
+                            <div class="card">
+                                <h3>Registrar / Editar Cuenta de Ahorro</h3>
+                                <form action="/agregar_cuenta_ahorro" method="POST">
+                                    <div class="form-group">
+                                        <label>Nombre de la Cuenta</label>
+                                        <input type="text" name="nombre_cuenta" placeholder="Ej: Banco Guardadito, Efectivo Colchón" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Saldo Actual (\$)</label>
+                                        <input type="number" step="0.01" name="saldo_actual" placeholder="0.00" required>
+                                    </div>
+                                    <button type="submit" class="btn-primary">Guardar Cuenta</button>
+                                </form>
+                            </div>
+
+                            <div class="card">
+                                <h3>Registrar / Editar Meta de Ahorro</h3>
+                                <form action="/agregar_meta_ahorro" method="POST">
+                                    <div class="form-group">
+                                        <label>Nombre de la Meta</label>
+                                        <input type="text" name="nombre_meta" placeholder="Ej: Viaje 2027, Fondo de Emergencia" required>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Monto Objetivo (\$)</label>
+                                            <input type="number" step="0.01" name="monto_objetivo" placeholder="0.00" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Monto Inicial (\$)</label>
+                                            <input type="number" step="0.01" name="monto_actual" placeholder="0.00" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Fecha Límite</label>
+                                        <input type="date" name="fecha_limite">
+                                    </div>
+                                    <button type="submit" class="btn-primary">Guardar Meta</button>
+                                </form>
+                            </div>
+
+                            <!-- Formulario de Abono a Meta -->
+                            <div class="card">
+                                <h3>Registrar Abono a Meta de Ahorro</h3>
+                                <form action="/agregar_abono_meta" method="POST">
+                                    <div class="form-group">
+                                        <label>Seleccionar Meta</label>
+                                        <select name="meta_id" required>
+                                            {% for meta in metas_ahorro %}
+                                            <option value="{{ meta.id }}">{{ meta.nombre_meta }} (Actual: ${{ "%.2f"|format(meta.monto_actual) }} / Obj: ${{ "%.2f"|format(meta.monto_objetivo) }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Monto del Abono (\$)</label>
+                                            <input type="number" step="0.01" name="monto" placeholder="0.00" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Fecha del Abono</label>
+                                            <input type="date" name="fecha" required>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn-primary">Abonar a la Meta</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Columna Derecha: Tablas, Barras de Progreso y Acciones CRUD -->
+                        <div>
+                            <div class="card">
+                                <h3>Mis Cuentas de Ahorro</h3>
+                                {% if cuentas_ahorro %}
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Cuenta</th>
+                                            <th>Saldo Actual</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for cuenta in cuentas_ahorro %}
+                                        <tr>
+                                            <td style="font-weight: 600;">{{ cuenta.nombre_cuenta }}</td>
+                                            <td style="color: var(--success-text); font-weight: 700;">${{ "%.2f"|format(cuenta.saldo_actual) }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+
+                                <h3 style="margin-top: 24px; font-size: 0.95rem;">Modificar / Eliminar Cuenta</h3>
+                                <div class="form-group">
+                                    <label>Seleccionar Cuenta</label>
+                                    <select id="selectCuentaAhorroEdit" onchange="cargarDatosCuentaAhorro(this)">
+                                        <option value="">-- Seleccionar --</option>
+                                        {% for cuenta in cuentas_ahorro %}
+                                        <option value="{{ cuenta.id }}" data-nombre="{{ cuenta.nombre_cuenta }}" data-saldo="{{ cuenta.saldo_actual }}">{{ cuenta.nombre_cuenta }} (${{ cuenta.saldo_actual }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <form action="" method="POST" id="formEditarCuentaAhorro">
+                                    <div class="form-group">
+                                        <label>Nombre de la Cuenta</label>
+                                        <input type="text" name="nombre_cuenta" id="editCuentaNombre" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Saldo Actual (\$)</label>
+                                        <input type="number" step="0.01" name="saldo_actual" id="editCuentaSaldo" required>
+                                    </div>
+                                    <div style="display: flex; gap: 10px;">
+                                        <button type="submit" class="btn-secondary" style="flex:1;">Actualizar Cuenta</button>
+                                        <button type="submit" formaction="" id="btnEliminarCuentaAhorro" class="btn-danger" style="flex:1;">Eliminar Cuenta</button>
+                                    </div>
+                                </form>
+                                {% else %}
+                                <p style="color: var(--text-muted); font-size: 0.9rem;">No posees cuentas de ahorro registradas.</p>
+                                {% endif %}
+                            </div>
+
+                            <div class="card">
+                                <h3>Progreso de Metas de Ahorro</h3>
+                                {% if metas_ahorro %}
+                                {% for meta in metas_ahorro %}
+                                {% set pct = (meta.monto_actual / meta.monto_objetivo * 100) if meta.monto_objetivo > 0 else 0 %}
+                                {% set pct_capped = 100 if pct > 100 else pct %}
+                                <div style="margin-bottom: 20px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                        <span style="font-weight: 600; font-size: 0.9rem;">{{ meta.nombre_meta }}</span>
+                                        <span style="font-size: 0.8rem; color: var(--text-muted);">${{ "%.2f"|format(meta.monto_actual) }} / ${{ "%.2f"|format(meta.monto_objetivo) }} ({{ "%.1f"|format(pct) }}%)</span>
+                                    </div>
+                                    <div style="background: #e2e8f0; border-radius: var(--radius-sm); height: 8px; overflow: hidden;">
+                                        <div style="background: var(--primary); width: {{ pct_capped }}%; height: 100%; border-radius: var(--radius-sm); transition: width 0.3s ease;"></div>
+                                    </div>
+                                    {% if meta.fecha_limite %}
+                                    <div style="font-size: 0.75rem; color: var(--text-subtle); margin-top: 4px;">Fecha límite: {{ meta.fecha_limite }}</div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+
+                                <h3 style="margin-top: 24px; font-size: 0.95rem;">Modificar / Eliminar Meta</h3>
+                                <div class="form-group">
+                                    <label>Seleccionar Meta</label>
+                                    <select id="selectMetaAhorroEdit" onchange="cargarDatosMetaAhorro(this)">
+                                        <option value="">-- Seleccionar --</option>
+                                        {% for meta in metas_ahorro %}
+                                        <option value="{{ meta.id }}" data-nombre="{{ meta.nombre_meta }}" data-objetivo="{{ meta.monto_objetivo }}" data-actual="{{ meta.monto_actual }}" data-limite="{{ meta.fecha_limite or '' }}">{{ meta.nombre_meta }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <form action="" method="POST" id="formEditarMetaAhorro">
+                                    <div class="form-group">
+                                        <label>Nombre de la Meta</label>
+                                        <input type="text" name="nombre_meta" id="editMetaNombre" required>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Monto Objetivo (\$)</label>
+                                            <input type="number" step="0.01" name="monto_objetivo" id="editMetaObjetivo" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Monto Actual (\$)</label>
+                                            <input type="number" step="0.01" name="monto_actual" id="editMetaActual" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Fecha Límite</label>
+                                        <input type="date" name="fecha_limite" id="editMetaLimite">
+                                    </div>
+                                    <div style="display: flex; gap: 10px;">
+                                        <button type="submit" class="btn-secondary" style="flex:1;">Actualizar Meta</button>
+                                        <button type="submit" formaction="" id="btnEliminarMetaAhorro" class="btn-danger" style="flex:1;">Eliminar Meta</button>
+                                    </div>
+                                </form>
+                                {% else %}
+                                <p style="color: var(--text-muted); font-size: 0.9rem;">No posees metas de ahorro registradas.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GLOBAL DE ZOOM (PANTALLA COMPLETA) -->
+    <div id="zoomModalOverlay" class="zoom-modal-overlay" onclick="cerrarZoom(event)">
+        <div class="zoom-modal-content" onclick="event.stopPropagation()">
+            <div class="zoom-modal-header">
+                <h4 id="zoomModalTitle" class="zoom-modal-title">Vista Ampliada</h4>
+                <button type="button" class="zoom-close-btn" onclick="cerrarZoomModalDirecto()">✕ Cerrar</button>
+            </div>
+            <div id="zoomModalBody" class="zoom-modal-body">
+                <!-- Contenido dinámico inyectado por JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const categoriasIngresos = [
+            {% for ci in categorias_ingreso %}"{{ ci.categoria }}",{% endfor %}
+            "Sin categoría"
+        ];
+        const presupuestosGastos = [
+            {% for p in presupuestos %}"{{ p.categoria }}",{% endfor %}
+            "General / Sin categoría"
+        ];
+
+        function actualizarCategorias() {
+            const tipo = document.getElementById("tipoMov").value;
+            const select = document.getElementById("selectCategoria");
+            select.innerHTML = "";
+            let lista = tipo === "Ingreso" ? categoriasIngresos : presupuestosGastos;
+            if (lista.length === 0) lista = ["General / Sin categoría"];
+            lista.forEach(cat => {
+                let opt = document.createElement("option");
+                opt.value = cat;
+                opt.textContent = cat;
+                select.appendChild(opt);
+            });
+        }
+
+        function cargarDatosIngreso(select) {
+            let opt = select.options[select.selectedIndex];
+            let id = select.value;
+            if (!id) return;
+            document.getElementById('formEditarIngreso').action = "/editar_movimiento/" + id;
+            document.getElementById('btnEliminarIngreso').formAction = "/eliminar_movimiento/" + id;
+            document.getElementById('editIngFecha').value = opt.getAttribute('data-fecha');
+            document.getElementById('editIngConcepto').value = opt.getAttribute('data-concepto');
+            document.getElementById('editIngCat').value = opt.getAttribute('data-categoria');
+            document.getElementById('editIngMetodo').value = opt.getAttribute('data-metodo');
+            document.getElementById('editIngMonto').value = opt.getAttribute('data-monto');
+        }
+
+        function cargarDatosGasto(select) {
+            let opt = select.options[select.selectedIndex];
+            let id = select.value;
+            if (!id) return;
+            document.getElementById('formEditarGasto').action = "/editar_movimiento/" + id;
+            document.getElementById('btnEliminarGasto').formAction = "/eliminar_movimiento/" + id;
+            document.getElementById('editGasFecha').value = opt.getAttribute('data-fecha');
+            document.getElementById('editGasConcepto').value = opt.getAttribute('data-concepto');
+            document.getElementById('editGasCat').value = opt.getAttribute('data-categoria');
+            document.getElementById('editGasMetodo').value = opt.getAttribute('data-metodo');
+            document.getElementById('editGasMonto').value = opt.getAttribute('data-monto');
+        }
+
+        function cargarDatosPresupuesto(select) {
+            let opt = select.options[select.selectedIndex];
+            let id = select.value;
+            if (!id) return;
+            document.getElementById('formEditarPresupuesto').action = "/editar_presupuesto/" + id;
+            document.getElementById('btnEliminarPres').formAction = "/eliminar_presupuesto/" + id;
+            document.getElementById('editPresCat').value = opt.getAttribute('data-categoria');
+            document.getElementById('editPresLimite').value = opt.getAttribute('data-limite');
+        }
+
+        function cargarDatosDeuda(select) {
+            let opt = select.options[select.selectedIndex];
+            let id = select.value;
+            if (!id) return;
+            document.getElementById('formEditarDeuda').action = "/editar_deuda/" + id;
+            document.getElementById('btnEliminarDeuda').formAction = "/eliminar_deuda/" + id;
+            document.getElementById('editDeudaDesc').value = opt.getAttribute('data-desc');
+            document.getElementById('editDeudaMonto').value = opt.getAttribute('data-monto');
+        }
+
+        function cargarDatosAbono(select) {
+            let opt = select.options[select.selectedIndex];
+            let id = select.value;
+            if (!id) return;
+            document.getElementById('formEditarAbono').action = "/editar_abono/" + id;
+            document.getElementById('btnEliminarAbono').formAction = "/eliminar_abono/" + id;
+            document.getElementById('editAbonoFecha').value = opt.getAttribute('data-fecha');
+            document.getElementById('editAbonoMonto').value = opt.getAttribute('data-monto');
+            document.getElementById('editAbonoDeudaId').value = opt.getAttribute('data-deudaid');
+        }
+
+        function cargarDatosCuentaAhorro(select) {
+            let opt = select.options[select.selectedIndex];
+            let id = select.value;
+            if (!id) return;
+            document.getElementById('formEditarCuentaAhorro').action = "/editar_cuenta_ahorro/" + id;
+            document.getElementById('btnEliminarCuentaAhorro').formAction = "/eliminar_cuenta_ahorro/" + id;
+            document.getElementById('editCuentaNombre').value = opt.getAttribute('data-nombre');
+            document.getElementById('editCuentaSaldo').value = opt.getAttribute('data-saldo');
+        }
+
+        function cargarDatosMetaAhorro(select) {
+            let opt = select.options[select.selectedIndex];
+            let id = select.value;
+            if (!id) return;
+            document.getElementById('formEditarMetaAhorro').action = "/editar_meta_ahorro/" + id;
+            document.getElementById('btnEliminarMetaAhorro').formAction = "/eliminar_meta_ahorro/" + id;
+            document.getElementById('editMetaNombre').value = opt.getAttribute('data-nombre');
+            document.getElementById('editMetaObjetivo').value = opt.getAttribute('data-objetivo');
+            document.getElementById('editMetaActual').value = opt.getAttribute('data-actual');
+            document.getElementById('editMetaLimite').value = opt.getAttribute('data-limite');
+        }
+
+        window.onload = function() {
+            actualizarCategorias();
+            inicializarGraficos();
+            inicializarGraficosResumen();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const activeSection = urlParams.get('active_section');
+            if (activeSection === 'notas') {
+                switchMainView('view-notas');
+            } else if (activeSection === 'resumen') {
+                switchMainView('view-resumen');
+            } else if (activeSection === 'ahorros') {
+                switchMainView('view-ahorros');
+            } else {
+                switchMainView('view-inicio');
+            }
+
+            inicializarSistemaNotasAvanzado();
+        };
+
+        function switchTab(evt, tabId) {
+            let contents = document.getElementsByClassName("tab-content");
+            for (let c of contents) { c.classList.remove("active"); }
+            let buttons = document.getElementsByClassName("tab-btn");
+            for (let b of buttons) { b.classList.remove("active"); }
+            document.getElementById(tabId).classList.add("active");
+            evt.currentTarget.classList.add("active");
+            document.getElementById("currentTabInput").value = tabId;
+        }
+
+        function switchMainView(viewId) {
+            let views = document.getElementsByClassName("main-view");
+            for (let v of views) { v.classList.remove("active"); }
+            let navBtns = document.querySelectorAll(".sidebar-menu .sidebar-btn");
+            for (let b of navBtns) { b.classList.remove("active"); }
+
+            document.getElementById(viewId).classList.add("active");
+            if (viewId === 'view-inicio') {
+                document.getElementById('navInicio').classList.add("active");
+                document.getElementById('activeSectionInput').value = 'inicio';
+            } else if (viewId === 'view-resumen') {
+                document.getElementById('navResumen').classList.add("active");
+                document.getElementById('activeSectionInput').value = 'resumen';
+            } else if (viewId === 'view-notas') {
+                document.getElementById('navNotas').classList.add("active");
+                document.getElementById('activeSectionInput').value = 'notas';
+            } else if (viewId === 'view-ahorros') {
+                document.getElementById('navAhorros').classList.add("active");
+                document.getElementById('activeSectionInput').value = 'ahorros';
+            }
+
+            if (window.innerWidth <= 900) {
+                document.getElementById('appSidebar').classList.remove('open');
+            }
+        }
+
+        function toggleSidebar() {
+            document.getElementById('appSidebar').classList.toggle('open');
+        }
+
+        // ==========================================
+        // FUNCIONES DE EXPORTACIÓN Y ZOOM A JPG
+        // ==========================================
+        function exportarContenedorJPG(cardId, nombreArchivo) {
+            const card = document.getElementById(cardId);
+            if (!card) return;
+
+            const tools = card.querySelector('.card-tools');
+            if (tools) tools.style.display = 'none';
+
+            html2canvas(card, {
+                backgroundColor: '#ffffff',
+                scale: 2
+            }).then(canvas => {
+                if (tools) tools.style.display = 'flex';
+                let image = canvas.toDataURL('image/jpeg', 0.95);
+                let link = document.createElement('a');
+                link.href = image;
+                link.setAttribute('download', nombreArchivo);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }).catch(err => {
+                if (tools) tools.style.display = 'flex';
+                console.error('Error al generar la imagen JPG:', err);
+            });
+        }
+
+        function exportarGraficoJPG(canvasId, nombreArchivo) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            let tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            let ctx = tempCanvas.getContext('2d');
+
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            ctx.drawImage(canvas, 0, 0);
+
+            let urlImage = tempCanvas.toDataURL('image/jpeg', 0.95);
+            let link = document.createElement('a');
+            link.href = urlImage;
+            link.setAttribute('download', nombreArchivo);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function abrirZoom(cardId, titulo) {
+            const card = document.getElementById(cardId);
+            if (!card) return;
+            const modalOverlay = document.getElementById('zoomModalOverlay');
+            const modalTitle = document.getElementById('zoomModalTitle');
+            const modalBody = document.getElementById('zoomModalBody');
+
+            modalTitle.textContent = titulo;
+            let clonCard = card.cloneNode(true);
+            let tools = clonCard.querySelector('.card-tools');
+            if (tools) tools.remove();
+
+            modalBody.innerHTML = '';
+            modalBody.appendChild(clonCard);
+            modalOverlay.classList.add('active');
+        }
+
+        function abrirZoomGrafico(cardId, titulo, canvasId) {
+            const card = document.getElementById(cardId);
+            if (!card) return;
+            const modalOverlay = document.getElementById('zoomModalOverlay');
+            const modalTitle = document.getElementById('zoomModalTitle');
+            const modalBody = document.getElementById('zoomModalBody');
+
+            modalTitle.textContent = titulo;
+            modalBody.innerHTML = `
+                <div style="background: var(--bg-card); padding: 20px; border-radius: var(--radius-md);">
+                    <div style="position: relative; height: 450px; width: 100%;">
+                        <canvas id="zoomCanvasTarget"></canvas>
+                    </div>
+                </div>
+            `;
+            modalOverlay.classList.add('active');
+
+            setTimeout(() => {
+                let origenCanvas = document.getElementById(canvasId);
+                let targetCanvas = document.getElementById('zoomCanvasTarget');
+                if (origenCanvas && targetCanvas && window.Chart) {
+                    let chartInstance = Chart.getChart(origenCanvas);
+                    if (chartInstance) {
+                        new Chart(targetCanvas.getContext('2d'), {
+                            type: chartInstance.config.type,
+                            data: JSON.parse(JSON.stringify(chartInstance.config.data)),
+                            options: {
+                                ...chartInstance.config.options,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    ...chartInstance.config.options.plugins,
+                                    legend: { display: true, position: 'bottom' }
+                                }
+                            }
+                        });
+                    }
+                }
+            }, 50);
+        }
+
+        function cerrarZoom(e) {
+            document.getElementById('zoomModalOverlay').classList.remove('active');
+        }
+
+        function cerrarZoomModalDirecto() {
+            document.getElementById('zoomModalOverlay').classList.remove('active');
+        }
+
+        // ==========================================
+        // MÓDULO DE NOTAS CORREGIDO, ENRIQUECIDO Y A PRUEBA DE ERRORES
+        // ==========================================
+        let listaNotasMemoria = [
+            {% if notas_usuario %}
+            {% for n in notas_usuario %}
+            {
+                id: {{ n.id }},
+                titulo: `{{ n.titulo or 'Sin título' }}`,
+                contenido: `{{ n.contenido or '' }}`,
+                etiquetas: `{{ n.etiquetas or '' }}`,
+                fecha: `{{ n.fecha or '' }}`,
+                es_checklist: {{ 'true' if n.es_checklist else 'false' }}
+            },
+            {% endfor %}
+            {% endif %}
+        ];
+
+        function inicializarSistemaNotasAvanzado() {
+            renderizarTarjetasNotas();
+        }
+
+        function setSyncStatusNotas(state) {
+            const statusDiv = document.getElementById('syncStatusNotas');
+            if (!statusDiv) return;
+            statusDiv.className = 'sync-status ' + state;
+            if (state === 'writing') statusDiv.textContent = '✍️ Guardando...';
+            else if (state === 'saved') statusDiv.textContent = '✓ Guardado';
+            else if (state === 'error') statusDiv.textContent = '❌ Error';
+        }
+
+        function renderizarTarjetasNotas() {
+            const contenedor = document.getElementById('contenedorTarjetasNotas');
+            if (!contenedor) return;
+            contenedor.innerHTML = '';
+
+            if (!listaNotasMemoria || listaNotasMemoria.length === 0) {
+                contenedor.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem; grid-column: 1/-1;">No tienes notas guardadas. ¡Crea una nueva arriba!</p>`;
+                return;
+            }
+
+            listaNotasMemoria.forEach(nota => {
+                const card = document.createElement('div');
+                card.className = 'note-card';
+
+                const tagsHtml = nota.etiquetas
+                    ? nota.etiquetas.split(',').map(t => t.trim() ? `<span class="tag-badge">${t.trim()}</span>` : '').join(' ')
+                    : '';
+
+                let cuerpoHtml = '';
+                if (nota.es_checklist) {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = nota.contenido || '';
+                    const items = tempDiv.querySelectorAll('.editor-checklist-item, .checklist-item');
+                    
+                    if (items.length > 0) {
+                        cuerpoHtml = Array.from(items).map((item, idx) => {
+                            const isDone = item.classList.contains('done') || item.querySelector('input')?.checked;
+                            const text = item.innerText || item.textContent;
+                            return `<div class="checklist-item ${isDone ? 'done' : ''}" onclick="toggleChecklistItem(${nota.id}, ${idx})">
+                                <input type="checkbox" ${isDone ? 'checked' : ''} onclick="event.stopPropagation(); toggleChecklistItem(${nota.id}, ${idx})">
+                                <span>${text}</span>
+                            </div>`;
+                        }).join('');
+                    } else {
+                        const lineas = (nota.contenido || '').split('\n').filter(l => l.trim() !== '');
+                        cuerpoHtml = lineas.map((l, idx) => {
+                            const isDone = l.startsWith('[x] ');
+                            const textoLimpio = l.replace(/^[[ x]]\s*/, '');
+                            return `<div class="checklist-item ${isDone ? 'done' : ''}" onclick="toggleChecklistItem(${nota.id}, ${idx})">
+                                <input type="checkbox" ${isDone ? 'checked' : ''} onclick="event.stopPropagation(); toggleChecklistItem(${nota.id}, ${idx})">
+                                <span>${textoLimpio}</span>
+                            </div>`;
+                        }).join('');
+                    }
+                } else {
+                    cuerpoHtml = `<div class="note-card-content">${nota.contenido || ''}</div>`;
+                }
+
+                card.innerHTML = `
+                    <div>
+                        <div class="note-card-title">${nota.titulo || 'Sin título'}</div>
+                        <div class="note-card-meta">
+                            <span>${nota.fecha || 'Sin fecha'}</span>
+                            ${tagsHtml}
+                        </div>
+                        ${cuerpoHtml}
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-top: 16px;">
+                        <button type="button" class="btn-secondary" style="flex:1; padding: 6px 10px; font-size: 0.8rem;" onclick="cargarNotaEnEditor(${nota.id})">Editar</button>
+                        <button type="button" class="btn-danger" style="padding: 6px 10px; font-size: 0.8rem;" onclick="eliminarNotaAccion(${nota.id})">Eliminar</button>
+                    </div>
+                `;
+                contenedor.appendChild(card);
+            });
+        }
+
+        function limpiarFormularioNota() {
+            document.getElementById('notaId').value = '';
+            document.getElementById('notaTitulo').value = '';
+            document.getElementById('notaFecha').value = '';
+            document.getElementById('notaEtiquetas').value = '';
+            document.getElementById('notaEsChecklist').checked = false;
+            document.getElementById('notaContenidoEditor').innerHTML = '';
+            document.getElementById('editorTitle').textContent = 'Crear Nueva Nota';
+            document.getElementById('btnGuardarNota').textContent = 'Guardar Nota';
+        }
+
+        function cargarNotaEnEditor(id) {
+            const nota = listaNotasMemoria.find(n => n.id === id);
+            if (!nota) return;
+
+            document.getElementById('notaId').value = nota.id;
+            document.getElementById('notaTitulo').value = nota.titulo;
+            document.getElementById('notaFecha').value = nota.fecha;
+            document.getElementById('notaEtiquetas').value = nota.etiquetas;
+            document.getElementById('notaEsChecklist').checked = nota.es_checklist;
+            
+            const editor = document.getElementById('notaContenidoEditor');
+            editor.innerHTML = nota.contenido;
+
+            document.getElementById('editorTitle').textContent = 'Editar Nota';
+            document.getElementById('btnGuardarNota').textContent = 'Actualizar Nota';
+            window.scrollTo({ top: document.getElementById('view-notas').offsetTop, behavior: 'smooth' });
+        }
+
+        function guardarNotaProcesada(e) {
+            e.preventDefault();
+            setSyncStatusNotas('writing');
+
+            const id = document.getElementById('notaId').value;
+            const titulo = document.getElementById('notaTitulo').value;
+            const fecha = document.getElementById('notaFecha').value;
+            const etiquetas = document.getElementById('notaEtiquetas').value;
+            const es_checklist = document.getElementById('notaEsChecklist').checked;
+            const editor = document.getElementById('notaContenidoEditor');
+            let contenido = editor.innerHTML;
+
+            const payload = { titulo, fecha, etiquetas, es_checklist, contenido };
+            const isEdit = id !== '';
+            const url = isEdit ? `/api/notas/${id}` : '/api/notas/crear';
+            const method = isEdit ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success' && data.nota) {
+                    setSyncStatusNotas('saved');
+                    if (isEdit) {
+                        const idx = listaNotasMemoria.findIndex(n => n.id == id);
+                        if (idx !== -1) listaNotasMemoria[idx] = data.nota;
+                    } else {
+                        listaNotasMemoria.unshift(data.nota);
+                    }
+                    renderizarTarjetasNotas();
+                    limpiarFormularioNota();
+                } else {
+                    setSyncStatusNotas('error');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                setSyncStatusNotas('error');
+            });
+        }
+
+        function eliminarNotaAccion(id) {
+            if (!confirm('¿Estás seguro de que deseas eliminar esta nota?')) return;
+
+            fetch(`/api/notas/${id}`, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    listaNotasMemoria = listaNotasMemoria.filter(n => n.id !== id);
+                    renderizarTarjetasNotas();
+                    limpiarFormularioNota();
+                }
+            })
+            .catch(err => console.error(err));
+        }
+
+        function toggleChecklistItem(notaId, itemIndex) {
+            const nota = listaNotasMemoria.find(n => n.id === notaId);
+            if (!nota || !nota.es_checklist) return;
+
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = nota.contenido;
+            const items = tempDiv.querySelectorAll('.editor-checklist-item, .checklist-item');
+
+            if (items.length > 0 && items[itemIndex]) {
+                const item = items[itemIndex];
+                const isDone = item.classList.contains('done');
+                if (isDone) {
+                    item.classList.remove('done');
+                    const chk = item.querySelector('input[type="checkbox"]');
+                    if (chk) chk.checked = false;
+                } else {
+                    item.classList.add('done');
+                    const chk = item.querySelector('input[type="checkbox"]');
+                    if (chk) chk.checked = true;
+                }
+                nota.contenido = tempDiv.innerHTML;
+            }
+
+            fetch(`/api/notas/${notaId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contenido: nota.contenido })
+            }).then(() => renderizarTarjetasNotas());
+        }
+
+        function aplicarFormato(tipo) {
+            const editor = document.getElementById('notaContenidoEditor');
+            editor.focus();
+
+            if (tipo === 'negrita') {
+                document.execCommand('bold', false, null);
+            } else if (tipo === 'resaltado') {
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0 && !selection.isCollapsed) {
+                    const range = selection.getRangeAt(0);
+                    const mark = document.createElement('mark');
+                    mark.className = 'highlight-yellow';
+                    mark.appendChild(range.extractContents());
+                    range.insertNode(mark);
+                } else {
+                    document.execCommand('hiliteColor', false, '#fef08a');
+                }
+            } else if (tipo === 'titulo') {
+                document.execCommand('formatBlock', false, '<h2>');
+            }
+        }
+
+        function toggleFormatoChecklist(activado) {
+            const editor = document.getElementById('notaContenidoEditor');
+            if (!editor) return;
+
+            if (activado) {
+                let texto = editor.innerText || editor.textContent;
+                let lineas = texto.split('\n').filter(l => l.trim() !== '');
+                if (lineas.length === 0) lineas = ['Nueva tarea'];
+                
+                let htmlChecklist = lineas.map(l => {
+                    return `<div class="editor-checklist-item"><input type="checkbox" onchange="this.parentElement.classList.toggle('done', this.checked)"><span>${l.replace(/^\[[ x]\]\s*/, '')}</span></div>`;
+                }).join('');
+                
+                editor.innerHTML = htmlChecklist;
+            }
+        }
+
+        function inyectarPlantillaNota(tipo) {
+            const editor = document.getElementById('notaContenidoEditor');
+            editor.focus();
+            let htmlPlantilla = '';
+
+            if (tipo === 'deseos') {
+                htmlPlantilla = `<h2>✨ LISTA DE DESEOS Y CAPRICHOS</h2>
+                <div class="editor-checklist-item"><input type="checkbox" onchange="this.parentElement.classList.toggle('done', this.checked)"><span>Artículo: </span></div>
+                <p><b>Precio estimado:</b> $0.00</p>
+                <p><b>Prioridad:</b> Alta / Media / Baja</p>`;
+            } else if (tipo === 'impulso') {
+                htmlPlantilla = `<h2>🤔 CONTROL DE IMPULSO FINANCIERO</h2>
+                <p>1. ¿Realmente lo necesito o es un deseo temporal?</p>
+                <p>2. ¿Tengo saldo libre suficiente sin comprometer presupuestos?</p>
+                <p>3. ¿Cuántas horas de trabajo representa esta compra?</p>`;
+            }
+
+            editor.innerHTML += htmlPlantilla;
+        }
+
+        // CALCULADORA VISUAL
+        let calcVal = '0';
+
+        function updateCalcDisplay() {
+            const display = document.getElementById('calcDisplay');
+            if (!display) return;
+            display.textContent = calcVal;
+
+            if (calcVal.length > 14) {
+                display.style.fontSize = '1.1rem';
+            } else if (calcVal.length > 9) {
+                display.style.fontSize = '1.35rem';
+            } else {
+                display.style.fontSize = '1.75rem';
+            }
+        }
+
+        function calcNum(num) {
+            if (calcVal === '0' && num !== '.') calcVal = num;
+            else calcVal += num;
+            updateCalcDisplay();
+        }
+
+        function calcOp(op) {
+            const lastChar = calcVal.slice(-1);
+            if (['+', '-', '*', '/'].includes(lastChar)) {
+                calcVal = calcVal.slice(0, -1) + op;
+            } else {
+                calcVal += op;
+            }
+            updateCalcDisplay();
+        }
+
+        function calcClear() {
+            calcVal = '0';
+            updateCalcDisplay();
+        }
+
+        function calcBackspace() {
+            if (calcVal.length === 1) calcVal = '0';
+            else calcVal = calcVal.slice(0, -1);
+            updateCalcDisplay();
+        }
+
+        function calcCalculate() {
+            try {
+                let res = Function('"use strict";return (' + calcVal + ')')();
+                if (typeof res === 'number' && !isNaN(res)) {
+                    calcVal = Number.isInteger(res) ? res.toString() : res.toFixed(2);
+                } else {
+                    calcVal = 'Error';
+                }
+            } catch (e) {
+                calcVal = 'Error';
+            }
+            updateCalcDisplay();
+        }
+
+        // ==========================================
+        // INICIALIZACIÓN DE GRÁFICOS (CHART.JS)
+        // ==========================================
+        const todosMovimientosRaw = [
+            {% for m in todos_movimientos %}
+            { mes: "{{ m.mes }}", anio: "{{ m.anio }}", tipo: "{{ m.tipo }}", monto: {{ m.monto }}, categoria: "{{ m.categoria }}" },
+            {% endfor %}
+        ];
+
+        const todosPresupuestosRaw = [
+            {% for p in todos_presupuestos %}
+            { mes: "{{ p.mes }}", anio: "{{ p.anio }}", categoria: "{{ p.categoria }}", limite: {{ p.limite }} },
+            {% endfor %}
+        ];
+
+        let chartIngresosCat = null;
+        let chartGastosPresupuesto = null;
+
+        function inicializarGraficosResumen() {
+            actualizarResumenFinanciero();
+        }
+
+        function actualizarResumenFinanciero() {
+            const tipoFiltro = document.getElementById('filtroTipoResumen').value;
+            const mesSeleccionado = document.getElementById('filtroMesResumen').value;
+            const anioSeleccionado = document.getElementById('filtroAnioResumen').value;
+
+            let movsFiltrados = todosMovimientosRaw.filter(m => {
+                if (tipoFiltro === 'mensual') {
+                    return m.mes === mesSeleccionado && m.anio === anioSeleccionado;
+                } else {
+                    return m.anio === anioSeleccionado;
+                }
+            });
+
+            let ingresosPorCat = {};
+            movsFiltrados.filter(m => m.tipo === 'Ingreso').forEach(m => {
+                let cat = m.categoria || 'Sin categoría';
+                ingresosPorCat[cat] = (ingresosPorCat[cat] || 0) + m.monto;
+            });
+
+            const labelsIngresos = Object.keys(ingresosPorCat);
+            const dataIngresos = Object.values(ingresosPorCat);
+
+            let gastosPorPres = {};
+            movsFiltrados.filter(m => m.tipo === 'Gasto').forEach(m => {
+                let cat = m.categoria || 'General / Sin categoría';
+                gastosPorPres[cat] = (gastosPorPres[cat] || 0) + m.monto;
+            });
+
+            const labelsGastos = Object.keys(gastosPorPres);
+            const dataGastos = Object.values(gastosPorPres);
+
+            const ctxIncCat = document.getElementById('graficoIngresosCategoria').getContext('2d');
+            if (chartIngresosCat) chartIngresosCat.destroy();
+
+            chartIngresosCat = new Chart(ctxIncCat, {
+                type: 'doughnut',
+                data: {
+                    labels: labelsIngresos.length > 0 ? labelsIngresos : ['Sin datos'],
+                    datasets: [{
+                        data: dataIngresos.length > 0 ? dataIngresos : [1],
+                        backgroundColor: ['#4f46e5', '#059669', '#d97706', '#3b82f6', '#8b5cf6', '#ec4899', '#cbd5e1']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+                    }
+                }
+            });
+
+            const ctxGasPres = document.getElementById('graficoGastosPresupuesto').getContext('2d');
+            if (chartGastosPresupuesto) chartGastosPresupuesto.destroy();
+
+            chartGastosPresupuesto = new Chart(ctxGasPres, {
+                type: 'bar',
+                data: {
+                    labels: labelsGastos.length > 0 ? labelsGastos : ['Sin datos'],
+                    datasets: [{
+                        label: 'Gasto Real',
+                        data: dataGastos.length > 0 ? dataGastos : [0],
+                        backgroundColor: '#e11d48',
+                        borderRadius: 6,
+                        maxBarThickness: 36
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 } } },
+                        x: { grid: { display: false }, ticks: { font: { size: 11, weight: '500' } } }
+                    }
+                }
+            });
+        }
+
+        function inicializarGraficos() {
+            Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
+            Chart.defaults.color = '#64748b';
+
+            const ctxIngGas = document.getElementById('graficoIngresosGastos').getContext('2d');
+            const totalIngresos = {{ total_ingresos }};
+            const totalGastos = {{ total_gastos }};
+
+            new Chart(ctxIngGas, {
+                type: 'bar',
+                data: {
+                    labels: ['Ingresos', 'Gastos'],
+                    datasets: [{
+                        data: [totalIngresos, totalGastos],
+                        backgroundColor: [
+                            '#059669',
+                            '#e11d48'
+                        ],
+                        borderWidth: 0,
+                        borderRadius: 6,
+                        maxBarThickness: 56
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' },
+                            ticks: { font: { size: 11 } }
+                        },
+                        x: { 
+                            grid: { display: false },
+                            ticks: { font: { size: 12, weight: '500' } }
+                        }
+                    }
+                }
+            });
+
+            const ctxPres = document.getElementById('graficoPresupuestos').getContext('2d');
+            
+            const presupuestosCategorias = [
+                {% for pd in presupuestos_detallados %}"{{ pd.categoria }}",{% endfor %}
+            ];
+            const presupuestosLimites = [
+                {% for pd in presupuestos_detallados %}{{ pd.limite }},{% endfor %}
+            ];
+            const presupuestosUtilizados = [
+                {% for pd in presupuestos_detallados %}{{ pd.gastado }},{% endfor %}
+            ];
+
+            const coloresUtilizado = presupuestosUtilizados.map((utilizado, index) => {
+                const limite = presupuestosLimites[index];
+                if (limite === 0) return '#059669';
+                const porcentaje = (utilizado / limite) * 100;
+                if (porcentaje >= 100) {
+                    return '#e11d48';
+                } else if (porcentaje >= 50) {
+                    return '#d97706';
+                } else {
+                    return '#059669';
+                }
+            });
+
+            new Chart(ctxPres, {
+                type: 'bar',
+                data: {
+                    labels: presupuestosCategorias,
+                    datasets: [
+                        {
+                            label: 'Límite',
+                            data: presupuestosLimites,
+                            backgroundColor: '#cbd5e1',
+                            borderRadius: 4,
+                            maxBarThickness: 24
+                        },
+                        {
+                            label: 'Utilizado',
+                            data: presupuestosUtilizados,
+                            backgroundColor: coloresUtilizado,
+                            borderRadius: 4,
+                            maxBarThickness: 24
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { 
+                            position: 'top',
+                            labels: { boxWidth: 12, font: { size: 11 } }
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' },
+                            ticks: { font: { size: 11 } }
+                        },
+                        x: { 
+                            grid: { display: false },
+                            ticks: { font: { size: 11, weight: '500' } }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
