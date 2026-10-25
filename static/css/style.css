@@ -26,7 +26,8 @@ canvas {
     .sidebar {
         transform: translateX(-100%);
         width: min(280px, 85vw);
-        z-index: 101; /* Siempre por encima del contenido */
+        z-index: 102 !important; /* Capa superior para que el menú siempre esté nítido */
+        background-color: #ffffff !important; /* Fondo totalmente sólido */
     }
 
     .sidebar.open {
@@ -89,7 +90,7 @@ canvas {
         grid-template-columns: minmax(0, 1fr) !important;
     }
 
-    /* Solución para que los botones de herramientas (JPG/Zoom) no se encimen con los títulos en móviles */
+    /* Solución para que los botones de herramientas (JPG/Zoom) no se encimen con los títulos */
     .card {
         min-width: 0;
         max-width: 100%;
@@ -214,7 +215,7 @@ textarea {
     }
 }
 
-/* Capa oscura de fondo para cerrar el menú lateral al tocar fuera en móviles */
+/* Capa oscura de fondo (Detrás del menú lateral, pero encima de la página) */
 .sidebar-overlay {
     display: none;
     position: fixed;
@@ -224,5 +225,5 @@ textarea {
     height: 100vh;
     background: rgba(15, 23, 42, 0.5);
     backdrop-filter: blur(2px);
-    z-index: 100;
+    z-index: 101 !important;
 }
