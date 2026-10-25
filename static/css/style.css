@@ -1,66 +1,57 @@
 /* =========================================
    ESTILOS RESPONSIVOS PARA CELULARES (Numelia)
+   Basado en la estructura real de dashboard.html
    ========================================= */
 @media (max-width: 768px) {
 
-    /* 1. Ajustes generales de la página en móvil */
+    /* 1. Ajustes generales de pantalla y desbordamiento */
     body {
-        padding: 8px !important;
+        padding: 0 !important;
         margin: 0 !important;
-        overflow-x: hidden;
-        font-size: 14px;
+        overflow-x: hidden !important;
+        width: 100% !important;
     }
 
-    /* 2. Adaptación del diseño general y barra lateral (Sidebar) */
-    .app-container, .wrapper, .main-layout, body > div {
-        flex-direction: column !important;
-        width: 100% !important;
+    /* 2. Forzar que cualquier fila de formularios u otros elementos pase a columna */
+    .form-row {
         display: flex !important;
-    }
-
-    .sidebar, aside, .menu-lateral {
-        width: 100% !important;
-        height: auto !important;
-        position: relative !important;
-        box-shadow: none !important;
-        margin-bottom: 15px;
-    }
-
-    .main-content, .content, .dashboard-main {
-        width: 100% !important;
-        padding: 5px !important;
-        margin: 0 !important;
-    }
-
-    /* 3. Contenedores y tarjetas principales en columna */
-    .dashboard-container, .row, .cards-container, .container {
-        display: flex;
         flex-direction: column !important;
-        width: 100% !important;
-        padding: 5px !important;
-        margin: 0 0 10px 0 !important;
+        gap: 0 !important;
     }
 
-    /* 4. Formularios, botones e inputs adaptados al ancho táctil */
+    /* 3. Inputs, botones y selectores optimizados para pantallas táctiles */
     input, select, button, textarea, .form-control {
         width: 100% !important;
-        box-sizing: border-box;
-        margin-bottom: 10px;
-        font-size: 16px; /* Evita el zoom automático en iPhone */
+        box-sizing: border-box !important;
+        margin-bottom: 12px !important;
+        font-size: 16px !important; /* Evita el zoom automático en iPhone */
     }
 
-    /* 5. Tablas financieras con scroll horizontal suave */
+    /* 4. Tablas financieras con desplazamiento horizontal suave */
     table, .table-responsive {
-        width: 100%;
-        overflow-x: auto;
-        display: block;
-        white-space: nowrap;
+        width: 100% !important;
+        overflow-x: auto !important;
+        display: block !important;
+        white-space: nowrap !important;
     }
 
-    /* 6. Paneles y tarjetas individuales */
-    .panel, .card {
-        padding: 12px !important;
-        margin-bottom: 10px !important;
+    /* 5. Tarjetas, paneles y contenedores a todo el ancho */
+    .card, .metric-card, .toggle-box, .calculator-card {
+        padding: 16px !important;
+        margin-bottom: 16px !important;
         width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* 6. Alineación de pestañas superiores en móvil */
+    .tabs {
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
+
+    .tab-btn {
+        flex: 1 1 45% !important;
+        padding: 8px 10px !important;
+        font-size: 0.85rem !important;
     }
 }
