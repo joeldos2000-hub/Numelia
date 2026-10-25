@@ -2027,13 +2027,23 @@
 
             if (window.innerWidth <= 900) {
                 document.getElementById('appSidebar').classList.remove('open');
-            }
+            
+            const sidebar = document.getElementById('appSidebar');
+    if (sidebar) {
+        sidebar.classList.remove('open');
+    }
+    actualizarOverlay();
+}
         }
 
         function toggleSidebar() {
             const sidebar = document.getElementById('appSidebar');
             sidebar.classList.toggle('open');
-            
+            actualizarOverlay();
+        }
+
+        function actualizarOverlay() {
+            const sidebar = document.getElementById('appSidebar');
             let overlay = document.getElementById('sidebarOverlay');
             if (!overlay) {
                 overlay = document.createElement('div');
@@ -2042,6 +2052,7 @@
                 overlay.onclick = toggleSidebar;
                 document.body.appendChild(overlay);
             }
+            // Si el sidebar tiene la clase 'open', muestra el fondo oscuro; si no, lo oculta por completo
             overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
         }
 
