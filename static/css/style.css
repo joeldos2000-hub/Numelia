@@ -1,5 +1,6 @@
-
-/* ===== Ajustes generales ===== */
+/* =========================================
+   ESTILOS RESPONSIVOS PARA CELULARES (Numelia)
+   ========================================= */
 
 * {
     box-sizing: border-box;
@@ -20,12 +21,12 @@ canvas {
     max-width: 100%;
 }
 
-/* ===== Tabletas y móviles ===== */
-
+/* ===== Tabletas y móviles (hasta 900px) ===== */
 @media (max-width: 900px) {
     .sidebar {
         transform: translateX(-100%);
         width: min(280px, 85vw);
+        z-index: 101; /* Siempre por encima del contenido */
     }
 
     .sidebar.open {
@@ -88,10 +89,29 @@ canvas {
         grid-template-columns: minmax(0, 1fr) !important;
     }
 
-    /* Evita que las tablas ensanchen toda la página */
+    /* Solución para que los botones de herramientas (JPG/Zoom) no se encimen con los títulos en móviles */
     .card {
         min-width: 0;
         max-width: 100%;
+        position: relative !important;
+        padding-top: 24px !important;
+    }
+
+    .card-tools {
+        position: static !important;
+        display: flex !important;
+        justify-content: flex-end !important;
+        flex-wrap: wrap;
+        margin-bottom: 12px !important;
+        gap: 6px !important;
+    }
+
+    /* Apilar selectores de periodo y filtros para que no se salgan del recuadro */
+    .card form, 
+    .card div[style*="display: flex"] {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
     }
 
     .card table {
@@ -103,8 +123,7 @@ canvas {
     }
 }
 
-/* ===== Móviles pequeños ===== */
-
+/* ===== Móviles pequeños (hasta 600px) ===== */
 @media (max-width: 600px) {
     header h1 {
         font-size: 1rem !important;
@@ -144,12 +163,6 @@ canvas {
         padding: 16px;
     }
 
-    .card-tools {
-        position: static;
-        flex-wrap: wrap;
-        margin-bottom: 12px;
-    }
-
     .tabs {
         overflow-x: auto;
         flex-wrap: nowrap;
@@ -187,9 +200,6 @@ canvas {
     }
 }
 
-/* Los controles del formulario ocupan el ancho disponible,
-   sin forzar todos los botones de la interfaz a ocuparlo. */
-
 input,
 select,
 textarea {
@@ -202,4 +212,17 @@ textarea {
     textarea {
         font-size: 16px;
     }
+}
+
+/* Capa oscura de fondo para cerrar el menú lateral al tocar fuera en móviles */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 100;
 }

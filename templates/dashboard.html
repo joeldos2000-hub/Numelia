@@ -2031,7 +2031,18 @@
         }
 
         function toggleSidebar() {
-            document.getElementById('appSidebar').classList.toggle('open');
+            const sidebar = document.getElementById('appSidebar');
+            sidebar.classList.toggle('open');
+            
+            let overlay = document.getElementById('sidebarOverlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'sidebarOverlay';
+                overlay.className = 'sidebar-overlay';
+                overlay.onclick = toggleSidebar;
+                document.body.appendChild(overlay);
+            }
+            overlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
         }
 
         // ==========================================
