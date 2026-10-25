@@ -1,0 +1,45 @@
+/* =========================================
+   ESTILOS RESPONSIVOS PARA CELULARES (Numelia)
+   ========================================= */
+@media (max-width: 768px) {
+
+    /* 1. Ajustes generales de la página en móvil */
+    body {
+        padding: 8px !important;
+        margin: 0 !important;
+        overflow-x: hidden;
+        font-size: 14px;
+    }
+
+    /* 2. Contenedores y tarjetas principales en columna */
+    .dashboard-container, .row, .cards-container, .container {
+        display: flex;
+        flex-direction: column !important;
+        width: 100% !important;
+        padding: 5px !important;
+        margin: 0 0 10px 0 !important;
+    }
+
+    /* 3. Formularios, botones einputs adaptados al ancho táctil */
+    input, select, button, textarea, .form-control {
+        width: 100% !important;
+        box-sizing: border-box;
+        margin-bottom: 10px;
+        font-size: 16px; /* Evita que los iPhone hagan zoom automático molesto al enfocar */
+    }
+
+    /* 4. Tablas financieras con scroll horizontal suave */
+    table, .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        display: block;
+        white-space: nowrap;
+    }
+
+    /* 5. Paneles y tarjetas individuales */
+    .panel, .card {
+        padding: 12px !important;
+        margin-bottom: 10px !important;
+        width: 100% !important;
+    }
+}
