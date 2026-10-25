@@ -1,71 +1,205 @@
-/* =========================================
-   ESTILOS RESPONSIVOS PARA CELULARES (Numelia)
-   ========================================= */
 
-/* 1. Reglas generales para pantallas menores a 900px (Incluye barra lateral y grids) */
+/* ===== Ajustes generales ===== */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    width: 100%;
+    overflow-x: clip;
+}
+
+body {
+    margin: 0;
+    min-width: 0;
+}
+
+img,
+canvas {
+    max-width: 100%;
+}
+
+/* ===== Tabletas y móviles ===== */
+
 @media (max-width: 900px) {
-    .sidebar { 
-        transform: translateX(-100%); 
+    .sidebar {
+        transform: translateX(-100%);
+        width: min(280px, 85vw);
     }
-    .sidebar.open { 
-        transform: translateX(0); 
+
+    .sidebar.open {
+        transform: translateX(0);
     }
-    .main-wrapper { 
-        margin-left: 0 !important; 
+
+    .main-wrapper {
+        margin-left: 0 !important;
+        width: 100%;
+        min-width: 0;
     }
-    .sidebar-toggle { 
-        display: inline-block !important; 
+
+    .sidebar-toggle {
+        display: inline-block !important;
+        flex-shrink: 0;
     }
-    .charts-container, .metrics-grid, .form-row, .notes-grid-layout, div[style*="grid-template-columns"] { 
-        grid-template-columns: 1fr !important; 
-    } 
-    header { 
-        padding: 12px 16px !important; 
+
+    .container {
+        width: 100%;
+        max-width: 100%;
+        padding: 0 16px;
+        margin: 16px auto;
     }
-    .container { 
-        padding: 0 16px !important; 
-        margin: 16px auto !important; 
+
+    .metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .charts-container,
+    .notes-grid-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .form-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .app-layout,
+    .main-wrapper {
+        min-width: 0;
+    }
+
+    header {
+        padding: 12px 16px;
+        gap: 10px;
+    }
+
+    .user-info {
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    /* Rejillas definidas directamente en el HTML */
+    #view-inicio [style*="grid-template-columns"],
+    #view-resumen [style*="grid-template-columns"],
+    #view-notas [style*="grid-template-columns"],
+    #view-ahorros [style*="grid-template-columns"] {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    /* Evita que las tablas ensanchen toda la página */
+    .card {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .card table {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        white-space: nowrap;
     }
 }
 
-/* 2. Ajustes táctiles y de elementos para móviles (hasta 768px) */
-@media (max-width: 768px) {
-    body {
-        padding: 0 !important;
-        margin: 0 !important;
-        overflow-x: hidden !important;
-        width: 100% !important;
+/* ===== Móviles pequeños ===== */
+
+@media (max-width: 600px) {
+    header h1 {
+        font-size: 1rem !important;
     }
 
-    input, select, button, textarea, .form-control {
-        width: 100% !important;
-        box-sizing: border-box !important;
-        margin-bottom: 12px !important;
-        font-size: 16px !important; /* Evita el zoom automático en iPhone */
+    .user-info {
+        font-size: 0.75rem;
     }
 
-    table, .table-responsive {
-        width: 100% !important;
-        overflow-x: auto !important;
-        display: block !important;
-        white-space: nowrap !important;
+    .logout-btn {
+        padding: 6px 8px;
+        font-size: 0.75rem;
     }
 
-    .card, .metric-card, .toggle-box, .calculator-card {
-        padding: 16px !important;
-        margin-bottom: 16px !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
+    .container {
+        padding: 0 12px;
+        margin: 12px auto;
+    }
+
+    .metrics-grid,
+    .form-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .metric-card {
+        padding: 16px;
+        min-width: 0;
+    }
+
+    .metric-card .value {
+        font-size: clamp(1.35rem, 6vw, 2rem);
+        overflow-wrap: anywhere;
+    }
+
+    .card,
+    .calculator-card {
+        padding: 16px;
+    }
+
+    .card-tools {
+        position: static;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
     }
 
     .tabs {
-        flex-wrap: wrap !important;
-        gap: 6px !important;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        margin-bottom: 20px;
     }
 
     .tab-btn {
-        flex: 1 1 45% !important;
-        padding: 8px 10px !important;
-        font-size: 0.85rem !important;
+        flex: 0 0 auto;
+        white-space: nowrap;
+        padding: 10px 12px;
+    }
+
+    .toggle-box {
+        padding: 14px;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .zoom-modal-overlay {
+        padding: 8px;
+    }
+
+    .zoom-modal-content {
+        max-height: 95dvh;
+    }
+
+    .zoom-modal-header,
+    .zoom-modal-body {
+        padding: 14px;
+    }
+
+    .calc-display {
+        font-size: 1.4rem;
+    }
+}
+
+/* Los controles del formulario ocupan el ancho disponible,
+   sin forzar todos los botones de la interfaz a ocuparlo. */
+
+input,
+select,
+textarea {
+    max-width: 100%;
+}
+
+@media (max-width: 600px) {
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea {
+        font-size: 16px;
     }
 }
