@@ -1,10 +1,35 @@
 /* =========================================
    ESTILOS RESPONSIVOS PARA CELULARES (Numelia)
-   Basado en la estructura real de dashboard.html
    ========================================= */
-@media (max-width: 768px) {
 
-    /* 1. Ajustes generales de pantalla y desbordamiento */
+/* 1. Reglas generales para pantallas menores a 900px (Incluye barra lateral y grids) */
+@media (max-width: 900px) {
+    .sidebar { 
+        transform: translateX(-100%); 
+    }
+    .sidebar.open { 
+        transform: translateX(0); 
+    }
+    .main-wrapper { 
+        margin-left: 0 !important; 
+    }
+    .sidebar-toggle { 
+        display: inline-block !important; 
+    }
+    .charts-container, .metrics-grid, .form-row, .notes-grid-layout, div[style*="grid-template-columns"] { 
+        grid-template-columns: 1fr !important; 
+    } 
+    header { 
+        padding: 12px 16px !important; 
+    }
+    .container { 
+        padding: 0 16px !important; 
+        margin: 16px auto !important; 
+    }
+}
+
+/* 2. Ajustes táctiles y de elementos para móviles (hasta 768px) */
+@media (max-width: 768px) {
     body {
         padding: 0 !important;
         margin: 0 !important;
@@ -12,14 +37,6 @@
         width: 100% !important;
     }
 
-    /* 2. Forzar que cualquier fila de formularios u otros elementos pase a columna */
-    .form-row {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 0 !important;
-    }
-
-    /* 3. Inputs, botones y selectores optimizados para pantallas táctiles */
     input, select, button, textarea, .form-control {
         width: 100% !important;
         box-sizing: border-box !important;
@@ -27,7 +44,6 @@
         font-size: 16px !important; /* Evita el zoom automático en iPhone */
     }
 
-    /* 4. Tablas financieras con desplazamiento horizontal suave */
     table, .table-responsive {
         width: 100% !important;
         overflow-x: auto !important;
@@ -35,7 +51,6 @@
         white-space: nowrap !important;
     }
 
-    /* 5. Tarjetas, paneles y contenedores a todo el ancho */
     .card, .metric-card, .toggle-box, .calculator-card {
         padding: 16px !important;
         margin-bottom: 16px !important;
@@ -43,7 +58,6 @@
         box-sizing: border-box !important;
     }
 
-    /* 6. Alineación de pestañas superiores en móvil */
     .tabs {
         flex-wrap: wrap !important;
         gap: 6px !important;
