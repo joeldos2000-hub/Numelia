@@ -1872,6 +1872,21 @@
     </div>
 
     <script>
+        <script>
+        // Forzar el comportamiento responsivo si se abre en un dispositivo móvil al recargar
+        window.addEventListener('DOMContentLoaded', (event) => {
+            if (window.innerWidth <= 900) {
+                const sidebar = document.getElementById('appSidebar');
+                if (sidebar) {
+                    sidebar.classList.remove('open');
+                }
+                const wrapper = document.querySelector('.main-wrapper');
+                if (wrapper) {
+                    wrapper.style.marginLeft = '0px';
+                }
+            }
+        });
+
         const categoriasIngresos = [
             {% for ci in categorias_ingreso %}"{{ ci.categoria }}",{% endfor %}
             "Sin categoría"
