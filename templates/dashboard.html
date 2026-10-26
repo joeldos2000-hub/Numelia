@@ -2040,15 +2040,12 @@
                 document.getElementById('activeSectionInput').value = 'ahorros';
             }
 
-            if (window.innerWidth <= 900) {
-                document.getElementById('appSidebar').classList.remove('open');
-            
+            // Cierre limpio del menú móvil y actualización del overlay
             const sidebar = document.getElementById('appSidebar');
-    if (sidebar) {
-        sidebar.classList.remove('open');
-    }
-    actualizarOverlay();
-}
+            if (sidebar) {
+                sidebar.classList.remove('open');
+            }
+            actualizarOverlay();
         }
 
         function toggleSidebar() {
