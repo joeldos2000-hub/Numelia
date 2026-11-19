@@ -12,9 +12,11 @@
     
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --primary-light: #eef2ff;
+            --primary: #0d2e2b;
+            --primary-hover: #081f1d;
+            --primary-light: #e6efee;
+            --accent-gold: #fdb924;
+            --accent-crimson: #7d061c;
             --bg-body: #f8fafc;
             --text-main: #0f172a;
             --text-muted: #64748b;
@@ -62,7 +64,8 @@
 
         .brand-side {
             flex: 1.2;
-            background: linear-gradient(135deg, #4f46e5 0%, #1e1b4b 100%);
+            background:
+                linear-gradient(145deg, rgba(13, 46, 43, 0.96) 0%, rgba(7, 26, 24, 0.98) 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -71,30 +74,77 @@
             color: var(--white);
             position: relative;
             overflow: hidden;
+            border-left: 5px solid var(--accent-gold);
         }
 
         .brand-side::before {
             content: '';
             position: absolute;
-            top: -20%;
-            right: -20%;
-            width: 500px;
-            height: 500px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 50%;
+            inset: 0;
+            background-image:
+                repeating-linear-gradient(
+                    45deg,
+                    rgba(253, 185, 36, 0.05) 0px,
+                    rgba(253, 185, 36, 0.05) 2px,
+                    transparent 2px,
+                    transparent 28px
+                ),
+                repeating-linear-gradient(
+                    -45deg,
+                    rgba(125, 6, 28, 0.08) 0px,
+                    rgba(125, 6, 28, 0.08) 2px,
+                    transparent 2px,
+                    transparent 28px
+                );
             pointer-events: none;
         }
 
         .brand-side::after {
             content: '';
             position: absolute;
-            bottom: -10%;
-            left: -10%;
-            width: 350px;
-            height: 350px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 50%;
+            bottom: -70px;
+            right: -70px;
+            width: 260px;
+            height: 260px;
+            border: 18px solid rgba(253, 185, 36, 0.12);
+            box-shadow: inset 0 0 0 14px rgba(125, 6, 28, 0.16);
+            transform: rotate(45deg);
             pointer-events: none;
+        }
+
+        .inca-motif {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        .inca-diamond {
+            width: 14px;
+            height: 14px;
+            transform: rotate(45deg);
+            display: inline-block;
+        }
+
+        .inca-diamond.crimson {
+            background-color: var(--accent-crimson);
+            border: 2px solid rgba(255, 255, 255, 0.75);
+        }
+
+        .inca-diamond.teal {
+            background-color: #164e49;
+            border: 2px solid var(--accent-gold);
+        }
+
+        .inca-diamond.gold {
+            background-color: var(--accent-gold);
+            border: 2px solid rgba(255, 255, 255, 0.75);
+        }
+
+        .inca-line {
+            width: 44px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-gold), transparent);
         }
 
         .brand-side-content {
@@ -114,7 +164,7 @@
         .brand-side p {
             font-size: 1.1rem;
             line-height: 1.6;
-            color: #c7d2fe;
+            color: #d7e5e3;
             font-weight: 400;
         }
 
@@ -177,7 +227,7 @@
 
         .tab-btn.active {
             background: var(--white);
-            color: var(--text-main);
+            color: var(--primary);
             font-weight: 600;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
         }
@@ -497,6 +547,12 @@
 
         <div class="brand-side">
             <div class="brand-side-content">
+                <div class="inca-motif" aria-hidden="true">
+                    <span class="inca-diamond crimson"></span>
+                    <span class="inca-diamond teal"></span>
+                    <span class="inca-diamond gold"></span>
+                    <span class="inca-line"></span>
+                </div>
                 <h2>Lleva el control de tus finanzas sin esfuerzo.</h2>
                 <p>Monitorea tus presupuestos, optimiza el control de tus deudas y toma decisiones financieras con absoluta claridad en un solo lugar.</p>
             </div>
