@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DINÉVIA - Panel Financiero</title>
+    <title>KUMALLIA</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='2') }}">
     <!-- Tipografía Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,9 +22,11 @@
             --text-main: #0f172a;
             --text-muted: #64748b;
             --text-subtle: #94a3b8;
-            --primary: #4f46e5; /* Índigo digital moderno */
-            --primary-hover: #4338ca;
-            --primary-light: #eef2ff;
+            --primary: #0d2e2b; /* Verde del botón de iniciar sesión */
+            --primary-hover: #081f1d;
+            --primary-light: #e6efee;
+            --accent-gold: #fdb924;
+            --accent-crimson: #7d061c;
             --success-bg: #ecfdf5;
             --success-text: #047857;
             --success-border: #a7f3d0;
@@ -48,16 +50,51 @@
             -webkit-font-smoothing: antialiased;
         }
 
+        /* Banner de alerta de error dentro del dashboard */
+        .dashboard-error-banner {
+            display: none;
+            background-color: var(--danger-bg);
+            color: var(--danger-text);
+            border: 1px solid var(--danger-border);
+            border-radius: var(--radius-md);
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .dashboard-error-banner.visible {
+            display: flex;
+            animation: fadeIn 0.2s ease-in-out;
+        }
+
+        .dashboard-error-close {
+            background: transparent;
+            border: none;
+            color: var(--danger-text);
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 0 6px;
+        }
+
         /* Layout general con barra lateral */
         .app-layout {
             display: flex;
             min-height: 100vh;
         }
 
-        /* Barra Lateral Izquierda (Sidebar) */
+        /* Barra Lateral Izquierda (Sidebar) con entramado continuo de rombos y rombos intermedios tipo mandala */
         .sidebar {
             width: 260px;
-            background: var(--bg-card);
+            background-color: #0d2e2b;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%230d2e2b'/%3E%3C!-- Rombos principales unidos en cuadrícula --%3E%3Cpolygon points='40,0 80,40 40,80 0,40' fill='%2313403c' fill-opacity='0.55' stroke='%23fdb924' stroke-opacity='0.28' stroke-width='1.5'/%3E%3C!-- Detalle concéntrico interior tipo mandala dentro del rombo --%3E%3Cpolygon points='40,14 66,40 40,66 14,40' fill='none' stroke='%23ffffff' stroke-opacity='0.14' stroke-width='1.2'/%3E%3Cpolygon points='40,26 54,40 40,54 26,40' fill='%237d061c' fill-opacity='0.24' stroke='%23fdb924' stroke-opacity='0.35' stroke-width='1.2'/%3E%3C!-- Huecos en forma de rombo en las esquinas donde se unen los rombos --%3E%3Cpolygon points='0,0 20,20 0,40 -20,20' fill='%237d061c' fill-opacity='0.34' stroke='%23fdb924' stroke-opacity='0.32' stroke-width='1.4'/%3E%3Cpolygon points='80,0 100,20 80,40 60,20' fill='%237d061c' fill-opacity='0.34' stroke='%23fdb924' stroke-opacity='0.32' stroke-width='1.4'/%3E%3Cpolygon points='0,80 20,100 0,120 -20,100' fill='%237d061c' fill-opacity='0.34' stroke='%23fdb924' stroke-opacity='0.32' stroke-width='1.4'/%3E%3Cpolygon points='80,80 100,100 80,120 60,100' fill='%237d061c' fill-opacity='0.34' stroke='%23fdb924' stroke-opacity='0.32' stroke-width='1.4'/%3E%3Cpolygon points='40,-40 60,-20 40,0 20,-20' fill='%23fdb924' fill-opacity='0.18' stroke='%23fdb924' stroke-opacity='0.32' stroke-width='1.4'/%3E%3Cpolygon points='40,40 60,60 40,80 20,60' fill='none'/%3E%3C!-- Rombos intermedios en los cruces laterales --%3E%3Cpolygon points='0,40 20,60 0,80 -20,60' fill='%23fdb924' fill-opacity='0.18' stroke='%23fdb924' stroke-opacity='0.32' stroke-width='1.4'/%3E%3Cpolygon points='80,40 100,60 80,80 60,60' fill='%23fdb924' fill-opacity='0.18' stroke='%23fdb924' stroke-opacity='0.32' stroke-width='1.4'/%3E%3Cpolygon points='40,40 60,60 40,80 20,60' fill='%2309211f' fill-opacity='0.45' stroke='%23ffffff' stroke-opacity='0.16' stroke-width='1.2'/%3E%3C/svg%3E");
+            background-repeat: repeat;
+            background-size: 80px 80px;
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
@@ -67,6 +104,7 @@
             left: 0;
             z-index: 100;
             transition: transform 0.3s ease;
+            color: #ffffff;
         }
 
         .sidebar-brand {
@@ -74,7 +112,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            background-color: #ffffff;
             height: 90px;
             box-sizing: border-box;
             width: 100%;
@@ -92,7 +131,7 @@
             padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
             flex-grow: 1;
         }
 
@@ -101,35 +140,40 @@
             align-items: center;
             gap: 12px;
             width: 100%;
-            background: transparent;
-            border: none;
+            background: rgba(8, 28, 26, 0.82);
+            backdrop-filter: blur(2px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             padding: 12px 16px;
             border-radius: var(--radius-sm);
             font-family: var(--font-sans);
             font-weight: 500;
             font-size: 0.9rem;
-            color: var(--text-muted);
+            color: #f1f5f9;
             cursor: pointer;
             text-align: left;
             transition: all 0.2s ease;
         }
 
         .sidebar-btn:hover {
-            background-color: var(--bg-body);
-            color: var(--text-main);
+            background-color: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.35);
+            color: #ffffff;
         }
 
         .sidebar-btn.active {
-            background-color: var(--primary-light);
-            color: var(--primary);
-            font-weight: 600;
+            background-color: #ffffff;
+            border-color: #ffffff;
+            color: #0d2e2b;
+            font-weight: 700;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
         }
 
         .sidebar-footer {
             padding: 16px 24px;
-            border-top: 1px solid var(--border-color);
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
             font-size: 0.85rem;
-            color: var(--text-muted);
+            color: #e2eceb;
+            background-color: rgba(8, 28, 26, 0.88);
         }
 
         /* Contenedor principal ajustado al margen del sidebar */
@@ -702,7 +746,7 @@
         }
 
         .calc-btn.op:hover {
-            background: #e0e7ff;
+            background: #d5e5e3;
         }
 
         .calc-btn.action {
@@ -886,6 +930,24 @@
             </header>
 
             <div class="container">
+                <!-- MENSAJES FLASH DESDE EL SERVIDOR (FLASK) -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                        <div class="dashboard-error-banner visible" role="alert">
+                            <span>⚠️ {{ message }}</span>
+                            <button type="button" class="dashboard-error-close" onclick="this.parentElement.remove()" aria-label="Cerrar aviso">✕</button>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- ALERTA DE ERROR EN EL DASHBOARD -->
+                <div id="dashboardErrorAlert" class="dashboard-error-banner" role="alert">
+                    <span id="dashboardErrorText"></span>
+                    <button type="button" class="dashboard-error-close" onclick="ocultarErrorDashboard()" aria-label="Cerrar error">✕</button>
+                </div>
+
                 <!-- VISTA 1: INICIO (DASHBOARD & PESTAÑAS ORIGINALES) -->
                 <div id="view-inicio" class="main-view active">
                     <!-- Selector de Periodo Global -->
@@ -952,7 +1014,7 @@
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
                             <div class="card">
                                 <h3>Registrar Movimiento</h3>
-                                <form action="/agregar_movimiento" method="POST" enctype="multipart/form-data">
+                                <form action="/agregar_movimiento" method="POST" enctype="multipart/form-data" onsubmit="return validarMovimientoForm(this)">
                                     <input type="hidden" name="tab" value="tab-dashboard">
                                     <div class="form-group">
                                         <label>Cargar factura o documento (PDF, TXT, CSV, XLSX)</label>
@@ -1069,11 +1131,12 @@
                                 <button type="button" class="tool-btn" onclick="abrirZoom('cardHistorialIngresos', 'Historial de Ingresos')" title="Ampliar vista">🗖 Zoom</button>
                             </div>
                             <h3>Historial de Ingresos - {{ mes_actual }} {{ anio_actual }}</h3>
-                            {% if movimientos %}
+                            {% set ingresos_lista = movimientos | selectattr('tipo', 'equalto', 'Ingreso') | list %}
+                            {% if ingresos_lista %}
                             <table id="tablaHistorialIngresos">
                                <thead><tr><th>Fecha</th><th>Concepto</th><th>Categoría</th><th>Método</th><th>Monto</th></tr></thead>
                                <tbody>
-                                    {% for mov in movimientos if mov.tipo == 'Ingreso' %}
+                                    {% for mov in ingresos_lista %}
                                     <tr>
                                         <td>{{ mov.fecha }}</td>
                                         <td style="font-weight: 500;">{{ mov.concepto or 'Sin concepto' }}</td>
@@ -1083,6 +1146,13 @@
                                     </tr>
                                     {% endfor %}
                                </tbody>
+                               <tfoot>
+                                    {% set total_hist_ingresos = ingresos_lista | map(attribute='monto') | sum %}
+                                    <tr style="border-top: 2px solid var(--border-color); background-color: #f8fafc;">
+                                        <td colspan="4" style="font-weight: 700;">TOTAL INGRESOS</td>
+                                        <td style="color: var(--success-text); font-weight: 700;">${{ "%.2f"|format(total_hist_ingresos) }}</td>
+                                    </tr>
+                               </tfoot>
                             </table>
                             {% else %}
                             <p style="color: var(--text-muted); font-size: 0.9rem;">No hay ingresos registrados en este periodo.</p>
@@ -1092,7 +1162,7 @@
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
                             <div class="card">
                                 <h3>Modificación / Eliminación de Ingreso</h3>
-                                <form action="" method="POST" id="formEditarIngreso">
+                                <form action="" method="POST" id="formEditarIngreso" onsubmit="return validarEdicionSeleccion('selectIngresoEdit', this, 'Debes seleccionar un ingreso antes de realizar esta acción.')">
                                     <input type="hidden" name="tab" value="tab-ingresos">
                                     <input type="hidden" name="tipo" value="Ingreso">
                                     <div class="form-group">
@@ -1144,7 +1214,7 @@
 
                             <div class="card">
                                 <h3>Gestionar Categorías de Ingresos</h3>
-                                <form action="/agregar_categoria_ingreso" method="POST" style="margin-bottom: 24px;">
+                                <form action="/agregar_categoria_ingreso" method="POST" style="margin-bottom: 24px;" onsubmit="return validarTextoNoVacio(this, 'categoria', 'Ingresa un nombre válido para la categoría de ingreso.')">
                                     <div class="form-group">
                                         <label>Nueva Categoría</label>
                                         <input type="text" name="categoria" placeholder="Ej: Freelance, Venta" required>
@@ -1152,7 +1222,7 @@
                                     <button type="submit" class="btn-primary">Añadir Categoría</button>
                                 </form>
 
-                                <form action="/eliminar_categoria_ingreso" method="POST">
+                                <form action="/eliminar_categoria_ingreso" method="POST" onsubmit="return validarSelectNoVacio(this, 'categoria', 'Selecciona una categoría de ingreso para eliminar.')">
                                     <div class="form-group">
                                         <label>Eliminar Categoría</label>
                                         <select name="categoria">
@@ -1175,11 +1245,12 @@
                                 <button type="button" class="tool-btn" onclick="abrirZoom('cardHistorialGastos', 'Historial de Gastos')" title="Ampliar vista">🗖 Zoom</button>
                             </div>
                             <h3>Historial de Gastos - {{ mes_actual }} {{ anio_actual }}</h3>
-                            {% if movimientos %}
+                            {% set gastos_lista = movimientos | selectattr('tipo', 'equalto', 'Gasto') | list %}
+                            {% if gastos_lista %}
                             <table id="tablaHistorialGastos">
                                <thead><tr><th>Fecha</th><th>Concepto</th><th>Presupuesto</th><th>Método</th><th>Monto</th></tr></thead>
                                <tbody>
-                                    {% for mov in movimientos if mov.tipo == 'Gasto' %}
+                                    {% for mov in gastos_lista %}
                                     <tr>
                                         <td>{{ mov.fecha }}</td>
                                         <td style="font-weight: 500;">{{ mov.concepto or 'Sin concepto' }}</td>
@@ -1189,6 +1260,13 @@
                                     </tr>
                                     {% endfor %}
                                </tbody>
+                               <tfoot>
+                                    {% set total_hist_gastos = gastos_lista | map(attribute='monto') | sum %}
+                                    <tr style="border-top: 2px solid var(--border-color); background-color: #f8fafc;">
+                                        <td colspan="4" style="font-weight: 700;">TOTAL GASTOS</td>
+                                        <td style="color: var(--danger-text); font-weight: 700;">-${{ "%.2f"|format(total_hist_gastos) }}</td>
+                                    </tr>
+                               </tfoot>
                             </table>
                             {% else %}
                             <p style="color: var(--text-muted); font-size: 0.9rem;">No hay gastos registrados en este periodo.</p>
@@ -1197,7 +1275,7 @@
 
                         <div class="card" style="max-width: 600px; margin: 0 auto;">
                             <h3>Modificación / Eliminación de Gasto</h3>
-                            <form action="" method="POST" id="formEditarGasto">
+                            <form action="" method="POST" id="formEditarGasto" onsubmit="return validarEdicionSeleccion('selectGastoEdit', this, 'Debes seleccionar un gasto antes de realizar esta acción.')">
                                 <input type="hidden" name="tab" value="tab-gastos">
                                 <input type="hidden" name="tipo" value="Gasto">
                                 <div class="form-group">
@@ -1253,7 +1331,7 @@
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
                             <div class="card">
                                 <h3>Configurar Presupuesto Mensual</h3>
-                                <form action="/agregar_presupuesto" method="POST">
+                                <form action="/agregar_presupuesto" method="POST" onsubmit="return validarPresupuestoForm(this)">
                                     <input type="hidden" name="mes" value="{{ mes_actual }}">
                                     <input type="hidden" name="anio" value="{{ anio_actual }}">
                                     <div class="form-group">
@@ -1289,7 +1367,7 @@
                                         {% endfor %}
                                     </select>
                                 </div>
-                                <form action="" method="POST" id="formEditarPresupuesto" style="margin-bottom: 20px;">
+                                <form action="" method="POST" id="formEditarPresupuesto" style="margin-bottom: 20px;" onsubmit="return validarEdicionSeleccion('selectPresEdit', this, 'Debes seleccionar un presupuesto antes de actualizar o eliminar.')">
                                     <div class="form-group">
                                         <label>Modificar Nombre</label>
                                         <input type="text" name="categoria" id="editPresCat" required>
@@ -1362,7 +1440,7 @@
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
                             <div class="card">
                                 <h3>Registrar Nueva Deuda</h3>
-                                <form action="/agregar_deuda" method="POST">
+                                <form action="/agregar_deuda" method="POST" onsubmit="return validarDeudaForm(this)">
                                     <div class="form-group">
                                         <label>Descripción / A quién se debe</label>
                                         <input type="text" name="descripcion" placeholder="Ej: Banco, Préstamo" required>
@@ -1375,7 +1453,7 @@
                                 </form>
 
                                 <h3 style="margin-top: 32px;">Registrar Abono a Deuda</h3>
-                                <form action="/agregar_abono" method="POST">
+                                <form action="/agregar_abono" method="POST" onsubmit="return validarAbonoForm(this)">
                                     <div class="form-group">
                                         <label>Seleccionar Deuda</label>
                                         <select name="deuda_id" required>
@@ -1408,7 +1486,7 @@
                                         {% endfor %}
                                     </select>
                                 </div>
-                                <form action="" method="POST" id="formEditarDeuda" style="margin-bottom: 24px;">
+                                <form action="" method="POST" id="formEditarDeuda" style="margin-bottom: 24px;" onsubmit="return validarEdicionSeleccion('selectDeudaEdit', this, 'Debes seleccionar una deuda antes de actualizar o eliminar.')">
                                     <div class="form-group">
                                         <label>Descripción</label>
                                         <input type="text" name="descripcion" id="editDeudaDesc" required>
@@ -1437,7 +1515,7 @@
                                         {% endfor %}
                                     </select>
                                 </div>
-                                <form action="" method="POST" id="formEditarAbono">
+                                <form action="" method="POST" id="formEditarAbono" onsubmit="return validarEdicionSeleccion('selectAbonoEdit', this, 'Debes seleccionar un abono antes de actualizar o eliminar.')">
                                     <div class="form-group">
                                         <label>Fecha</label>
                                         <input type="date" name="fecha" id="editAbonoFecha" required>
@@ -1677,7 +1755,7 @@
                         <div>
                             <div class="card">
                                 <h3>Registrar / Editar Cuenta de Ahorro</h3>
-                                <form action="/agregar_cuenta_ahorro" method="POST">
+                                <form action="/agregar_cuenta_ahorro" method="POST" onsubmit="return validarCuentaAhorroForm(this)">
                                     <div class="form-group">
                                         <label>Nombre de la Cuenta</label>
                                         <input type="text" name="nombre_cuenta" placeholder="Ej: Banco Guardadito, Efectivo Colchón" required>
@@ -1692,7 +1770,7 @@
 
                             <div class="card">
                                 <h3>Registrar / Editar Meta de Ahorro</h3>
-                                <form action="/agregar_meta_ahorro" method="POST">
+                                <form action="/agregar_meta_ahorro" method="POST" onsubmit="return validarMetaAhorroForm(this)">
                                     <div class="form-group">
                                         <label>Nombre de la Meta</label>
                                         <input type="text" name="nombre_meta" placeholder="Ej: Viaje 2027, Fondo de Emergencia" required>
@@ -1718,7 +1796,7 @@
                             <!-- Formulario de Abono a Meta -->
                             <div class="card">
                                 <h3>Registrar Abono a Meta de Ahorro</h3>
-                                <form action="/agregar_abono_meta" method="POST">
+                                <form action="/agregar_abono_meta" method="POST" onsubmit="return validarAbonoMetaForm(this)">
                                     <div class="form-group">
                                         <label>Seleccionar Meta</label>
                                         <select name="meta_id" required>
@@ -1774,7 +1852,7 @@
                                         {% endfor %}
                                     </select>
                                 </div>
-                                <form action="" method="POST" id="formEditarCuentaAhorro">
+                                <form action="" method="POST" id="formEditarCuentaAhorro" onsubmit="return validarEdicionSeleccion('selectCuentaAhorroEdit', this, 'Debes seleccionar una cuenta de ahorro antes de actualizar o eliminar.')">
                                     <div class="form-group">
                                         <label>Nombre de la Cuenta</label>
                                         <input type="text" name="nombre_cuenta" id="editCuentaNombre" required>
@@ -1823,7 +1901,7 @@
                                         {% endfor %}
                                     </select>
                                 </div>
-                                <form action="" method="POST" id="formEditarMetaAhorro">
+                                <form action="" method="POST" id="formEditarMetaAhorro" onsubmit="return validarEdicionSeleccion('selectMetaAhorroEdit', this, 'Debes seleccionar una meta de ahorro antes de actualizar o eliminar.')">
                                     <div class="form-group">
                                         <label>Nombre de la Meta</label>
                                         <input type="text" name="nombre_meta" id="editMetaNombre" required>
@@ -1872,6 +1950,213 @@
     </div>
 
     <script>
+        // ==========================================
+        // MANEJO DE ERRORES Y VALIDACIONES EN DASHBOARD
+        // ==========================================
+        function mostrarErrorDashboard(mensaje) {
+            const banner = document.getElementById('dashboardErrorAlert');
+            const textEl = document.getElementById('dashboardErrorText');
+            if (banner && textEl) {
+                textEl.textContent = "⚠️ " + mensaje;
+                banner.classList.add('visible');
+                banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function ocultarErrorDashboard() {
+            const banner = document.getElementById('dashboardErrorAlert');
+            if (banner) {
+                banner.classList.remove('visible');
+            }
+        }
+
+        function validarMovimientoForm(form) {
+            ocultarErrorDashboard();
+            const archivo = form.querySelector('input[name="archivo_factura"]');
+            const montoInput = form.querySelector('input[name="monto"]');
+            const fechaInput = form.querySelector('input[name="fecha"]');
+            const tieneArchivo = archivo && archivo.files && archivo.files.length > 0;
+            const monto = parseFloat(montoInput.value);
+
+            if (!fechaInput.value) {
+                mostrarErrorDashboard("Por favor, selecciona una fecha válida para el movimiento.");
+                return false;
+            }
+            if (!tieneArchivo && (isNaN(monto) || monto <= 0)) {
+                mostrarErrorDashboard("Ingresa un monto mayor a 0.00 o carga un archivo de factura válido.");
+                return false;
+            }
+            return true;
+        }
+
+        function validarEdicionSeleccion(selectId, form, mensajeSinSeleccion) {
+            ocultarErrorDashboard();
+            const select = document.getElementById(selectId);
+            const activeBtn = document.activeElement;
+            const esEliminar = activeBtn && (activeBtn.id.startsWith('btnEliminar') || activeBtn.hasAttribute('formaction'));
+
+            if (!select || !select.value) {
+                mostrarErrorDashboard(mensajeSinSeleccion);
+                return false;
+            }
+
+            if (esEliminar) {
+                const targetAction = activeBtn.getAttribute('formaction');
+                if (!targetAction) {
+                    mostrarErrorDashboard(mensajeSinSeleccion);
+                    return false;
+                }
+                form.action = targetAction;
+                return true;
+            }
+
+            if (!form.getAttribute('action')) {
+                mostrarErrorDashboard(mensajeSinSeleccion);
+                return false;
+            }
+
+            const montoInput = form.querySelector('input[type="number"]');
+            if (montoInput) {
+                const val = parseFloat(montoInput.value);
+                if (isNaN(val) || val <= 0) {
+                    mostrarErrorDashboard("El monto debe ser un número mayor a 0.00.");
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function validarTextoNoVacio(form, fieldName, mensaje) {
+            ocultarErrorDashboard();
+            const input = form.querySelector(`[name="${fieldName}"]`);
+            if (!input || !input.value.trim()) {
+                mostrarErrorDashboard(mensaje);
+                return false;
+            }
+            return true;
+        }
+
+        function validarSelectNoVacio(form, fieldName, mensaje) {
+            ocultarErrorDashboard();
+            const select = form.querySelector(`select[name="${fieldName}"]`);
+            if (!select || !select.value) {
+                mostrarErrorDashboard(mensaje);
+                return false;
+            }
+            return true;
+        }
+
+        function validarPresupuestoForm(form) {
+            ocultarErrorDashboard();
+            const cat = form.querySelector('input[name="categoria"]').value.trim();
+            const limite = parseFloat(form.querySelector('input[name="limite"]').value);
+            if (!cat) {
+                mostrarErrorDashboard("Ingresa el nombre del presupuesto.");
+                return false;
+            }
+            if (isNaN(limite) || limite <= 0) {
+                mostrarErrorDashboard("El monto límite del presupuesto debe ser mayor a 0.00.");
+                return false;
+            }
+            return true;
+        }
+
+        function validarDeudaForm(form) {
+            ocultarErrorDashboard();
+            const desc = form.querySelector('input[name="descripcion"]').value.trim();
+            const monto = parseFloat(form.querySelector('input[name="monto"]').value);
+            if (!desc) {
+                mostrarErrorDashboard("Ingresa la descripción o a quién se le debe.");
+                return false;
+            }
+            if (isNaN(monto) || monto <= 0) {
+                mostrarErrorDashboard("El monto inicial de la deuda debe ser mayor a 0.00.");
+                return false;
+            }
+            return true;
+        }
+
+        function validarAbonoForm(form) {
+            ocultarErrorDashboard();
+            const deudaId = form.querySelector('select[name="deuda_id"]').value;
+            const monto = parseFloat(form.querySelector('input[name="monto"]').value);
+            const fecha = form.querySelector('input[name="fecha"]').value;
+            if (!deudaId) {
+                mostrarErrorDashboard("Selecciona una deuda para registrar el abono.");
+                return false;
+            }
+            if (isNaN(monto) || monto <= 0) {
+                mostrarErrorDashboard("El monto del abono debe ser mayor a 0.00.");
+                return false;
+            }
+            if (!fecha) {
+                mostrarErrorDashboard("Selecciona una fecha válida para el abono.");
+                return false;
+            }
+            return true;
+        }
+
+        function validarCuentaAhorroForm(form) {
+            ocultarErrorDashboard();
+            const nombre = form.querySelector('input[name="nombre_cuenta"]').value.trim();
+            const saldo = parseFloat(form.querySelector('input[name="saldo_actual"]').value);
+            if (!nombre) {
+                mostrarErrorDashboard("Ingresa el nombre de la cuenta de ahorro.");
+                return false;
+            }
+            if (isNaN(saldo) || saldo < 0) {
+                mostrarErrorDashboard("El saldo actual no puede ser negativo.");
+                return false;
+            }
+            return true;
+        }
+
+        function validarMetaAhorroForm(form) {
+            ocultarErrorDashboard();
+            const nombre = form.querySelector('input[name="nombre_meta"]').value.trim();
+            const objetivo = parseFloat(form.querySelector('input[name="monto_objetivo"]').value);
+            const actual = parseFloat(form.querySelector('input[name="monto_actual"]').value);
+            if (!nombre) {
+                mostrarErrorDashboard("Ingresa el nombre de la meta de ahorro.");
+                return false;
+            }
+            if (isNaN(objetivo) || objetivo <= 0) {
+                mostrarErrorDashboard("El monto objetivo debe ser mayor a 0.00.");
+                return false;
+            }
+            if (isNaN(actual) || actual < 0) {
+                mostrarErrorDashboard("El monto inicial no puede ser negativo.");
+                return false;
+            }
+            return true;
+        }
+
+        function validarAbonoMetaForm(form) {
+            ocultarErrorDashboard();
+            const metaId = form.querySelector('select[name="meta_id"]').value;
+            const monto = parseFloat(form.querySelector('input[name="monto"]').value);
+            const fecha = form.querySelector('input[name="fecha"]').value;
+            if (!metaId) {
+                mostrarErrorDashboard("Selecciona una meta de ahorro.");
+                return false;
+            }
+            if (isNaN(monto) || monto <= 0) {
+                mostrarErrorDashboard("El monto del abono a la meta debe ser mayor a 0.00.");
+                return false;
+            }
+            if (!fecha) {
+                mostrarErrorDashboard("Selecciona una fecha válida para el abono.");
+                return false;
+            }
+            return true;
+        }
+
+        window.addEventListener('error', function(event) {
+            if (event && event.message) {
+                mostrarErrorDashboard("Ocurrió un inconveniente al procesar la acción: " + event.message);
+            }
+        });
+
         // Forzar el comportamiento responsivo si se abre en un dispositivo móvil al recargar
         window.addEventListener('DOMContentLoaded', (event) => {
             if (window.innerWidth <= 900) {
@@ -1910,9 +2195,14 @@
         }
 
         function cargarDatosIngreso(select) {
+            ocultarErrorDashboard();
             let opt = select.options[select.selectedIndex];
             let id = select.value;
-            if (!id) return;
+            if (!id) {
+                document.getElementById('formEditarIngreso').action = "";
+                document.getElementById('btnEliminarIngreso').formAction = "";
+                return;
+            }
             document.getElementById('formEditarIngreso').action = "/editar_movimiento/" + id;
             document.getElementById('btnEliminarIngreso').formAction = "/eliminar_movimiento/" + id;
             document.getElementById('editIngFecha').value = opt.getAttribute('data-fecha');
@@ -1923,9 +2213,14 @@
         }
 
         function cargarDatosGasto(select) {
+            ocultarErrorDashboard();
             let opt = select.options[select.selectedIndex];
             let id = select.value;
-            if (!id) return;
+            if (!id) {
+                document.getElementById('formEditarGasto').action = "";
+                document.getElementById('btnEliminarGasto').formAction = "";
+                return;
+            }
             document.getElementById('formEditarGasto').action = "/editar_movimiento/" + id;
             document.getElementById('btnEliminarGasto').formAction = "/eliminar_movimiento/" + id;
             document.getElementById('editGasFecha').value = opt.getAttribute('data-fecha');
@@ -1936,9 +2231,14 @@
         }
 
         function cargarDatosPresupuesto(select) {
+            ocultarErrorDashboard();
             let opt = select.options[select.selectedIndex];
             let id = select.value;
-            if (!id) return;
+            if (!id) {
+                document.getElementById('formEditarPresupuesto').action = "";
+                document.getElementById('btnEliminarPres').formAction = "";
+                return;
+            }
             document.getElementById('formEditarPresupuesto').action = "/editar_presupuesto/" + id;
             document.getElementById('btnEliminarPres').formAction = "/eliminar_presupuesto/" + id;
             document.getElementById('editPresCat').value = opt.getAttribute('data-categoria');
@@ -1946,9 +2246,14 @@
         }
 
         function cargarDatosDeuda(select) {
+            ocultarErrorDashboard();
             let opt = select.options[select.selectedIndex];
             let id = select.value;
-            if (!id) return;
+            if (!id) {
+                document.getElementById('formEditarDeuda').action = "";
+                document.getElementById('btnEliminarDeuda').formAction = "";
+                return;
+            }
             document.getElementById('formEditarDeuda').action = "/editar_deuda/" + id;
             document.getElementById('btnEliminarDeuda').formAction = "/eliminar_deuda/" + id;
             document.getElementById('editDeudaDesc').value = opt.getAttribute('data-desc');
@@ -1956,9 +2261,14 @@
         }
 
         function cargarDatosAbono(select) {
+            ocultarErrorDashboard();
             let opt = select.options[select.selectedIndex];
             let id = select.value;
-            if (!id) return;
+            if (!id) {
+                document.getElementById('formEditarAbono').action = "";
+                document.getElementById('btnEliminarAbono').formAction = "";
+                return;
+            }
             document.getElementById('formEditarAbono').action = "/editar_abono/" + id;
             document.getElementById('btnEliminarAbono').formAction = "/eliminar_abono/" + id;
             document.getElementById('editAbonoFecha').value = opt.getAttribute('data-fecha');
@@ -1967,9 +2277,14 @@
         }
 
         function cargarDatosCuentaAhorro(select) {
+            ocultarErrorDashboard();
             let opt = select.options[select.selectedIndex];
             let id = select.value;
-            if (!id) return;
+            if (!id) {
+                document.getElementById('formEditarCuentaAhorro').action = "";
+                document.getElementById('btnEliminarCuentaAhorro').formAction = "";
+                return;
+            }
             document.getElementById('formEditarCuentaAhorro').action = "/editar_cuenta_ahorro/" + id;
             document.getElementById('btnEliminarCuentaAhorro').formAction = "/eliminar_cuenta_ahorro/" + id;
             document.getElementById('editCuentaNombre').value = opt.getAttribute('data-nombre');
@@ -1977,9 +2292,14 @@
         }
 
         function cargarDatosMetaAhorro(select) {
+            ocultarErrorDashboard();
             let opt = select.options[select.selectedIndex];
             let id = select.value;
-            if (!id) return;
+            if (!id) {
+                document.getElementById('formEditarMetaAhorro').action = "";
+                document.getElementById('btnEliminarMetaAhorro').formAction = "";
+                return;
+            }
             document.getElementById('formEditarMetaAhorro').action = "/editar_meta_ahorro/" + id;
             document.getElementById('btnEliminarMetaAhorro').formAction = "/eliminar_meta_ahorro/" + id;
             document.getElementById('editMetaNombre').value = opt.getAttribute('data-nombre');
@@ -2009,6 +2329,7 @@
         };
 
         function switchTab(evt, tabId) {
+            ocultarErrorDashboard();
             let contents = document.getElementsByClassName("tab-content");
             for (let c of contents) { c.classList.remove("active"); }
             let buttons = document.getElementsByClassName("tab-btn");
@@ -2019,6 +2340,7 @@
         }
 
         function switchMainView(viewId) {
+            ocultarErrorDashboard();
             let views = document.getElementsByClassName("main-view");
             for (let v of views) { v.classList.remove("active"); }
             let navBtns = document.querySelectorAll(".sidebar-menu .sidebar-btn");
@@ -2091,6 +2413,7 @@
                 document.body.removeChild(link);
             }).catch(err => {
                 if (tools) tools.style.display = 'flex';
+                mostrarErrorDashboard('Error al generar la imagen JPG.');
                 console.error('Error al generar la imagen JPG:', err);
             });
         }
@@ -2280,6 +2603,7 @@
         }
 
         function limpiarFormularioNota() {
+            ocultarErrorDashboard();
             document.getElementById('notaId').value = '';
             document.getElementById('notaTitulo').value = '';
             document.getElementById('notaFecha').value = '';
@@ -2291,6 +2615,7 @@
         }
 
         function cargarNotaEnEditor(id) {
+            ocultarErrorDashboard();
             const nota = listaNotasMemoria.find(n => n.id === id);
             if (!nota) return;
 
@@ -2310,15 +2635,23 @@
 
         function guardarNotaProcesada(e) {
             e.preventDefault();
-            setSyncStatusNotas('writing');
+            ocultarErrorDashboard();
 
             const id = document.getElementById('notaId').value;
-            const titulo = document.getElementById('notaTitulo').value;
+            const titulo = document.getElementById('notaTitulo').value.trim();
             const fecha = document.getElementById('notaFecha').value;
             const etiquetas = document.getElementById('notaEtiquetas').value;
             const es_checklist = document.getElementById('notaEsChecklist').checked;
             const editor = document.getElementById('notaContenidoEditor');
             let contenido = editor.innerHTML;
+
+            if (!titulo) {
+                setSyncStatusNotas('error');
+                mostrarErrorDashboard("El título de la nota no puede estar vacío.");
+                return;
+            }
+
+            setSyncStatusNotas('writing');
 
             const payload = { titulo, fecha, etiquetas, es_checklist, contenido };
             const isEdit = id !== '';
@@ -2330,7 +2663,10 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error("Respuesta no válida del servidor");
+                return res.json();
+            })
             .then(data => {
                 if (data.status === 'success' && data.nota) {
                     setSyncStatusNotas('saved');
@@ -2344,27 +2680,38 @@
                     limpiarFormularioNota();
                 } else {
                     setSyncStatusNotas('error');
+                    mostrarErrorDashboard(data.message || "No se pudo guardar la nota.");
                 }
             })
             .catch(err => {
                 console.error(err);
                 setSyncStatusNotas('error');
+                mostrarErrorDashboard("Error de conexión al guardar la nota.");
             });
         }
 
         function eliminarNotaAccion(id) {
+            ocultarErrorDashboard();
             if (!confirm('¿Estás seguro de que deseas eliminar esta nota?')) return;
 
             fetch(`/api/notas/${id}`, { method: 'DELETE' })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error("No se pudo eliminar la nota");
+                return res.json();
+            })
             .then(data => {
                 if (data.status === 'success') {
                     listaNotasMemoria = listaNotasMemoria.filter(n => n.id !== id);
                     renderizarTarjetasNotas();
                     limpiarFormularioNota();
+                } else {
+                    mostrarErrorDashboard(data.message || "No se pudo eliminar la nota.");
                 }
             })
-            .catch(err => console.error(err));
+            .catch(err => {
+                console.error(err);
+                mostrarErrorDashboard("Error al intentar eliminar la nota.");
+            });
         }
 
         function toggleChecklistItem(notaId, itemIndex) {

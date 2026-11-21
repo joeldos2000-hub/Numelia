@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso - DINÉVIA</title>
+    <title>Acceso - KUMALLIA</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='2') }}">
     <!-- Fuente Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -457,7 +457,7 @@
                     <form action="/login" method="POST">
                         <div class="form-group">
                             <label for="login-email">Correo electrónico</label>
-                            <input type="email" id="login-email" name="email" placeholder="tu.correo@ejemplo.com" required>
+                            <input type="email" id="login-email" name="email" placeholder="tu.correo@ejemplo.com">
                         </div>
                         
                         <div class="form-group">
@@ -466,7 +466,7 @@
                                 <a href="#" class="forgot-link">¿Olvidaste tu contraseña?</a>
                             </div>
                             <div class="input-wrapper">
-                                <input type="password" id="login-password" name="password" placeholder="••••••••" required>
+                                <input type="password" id="login-password" name="password" placeholder="••••••••">
                                 <button type="button" class="toggle-password" onclick="togglePasswordVisibility('login-password', this)" aria-label="Mostrar u ocultar contraseña">
                                     👁️
                                 </button>
