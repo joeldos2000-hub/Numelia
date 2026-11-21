@@ -31,6 +31,36 @@ db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+login_manager.login_message = None
+
+MESES_NOMBRES = [
+    'Enero',
+    'Febrero',
+    'Marzo',
+    'Abril',
+    'Mayo',
+    'Junio',
+    'Julio',
+    'Agosto',
+    'Septiembre',
+    'Octubre',
+    'Noviembre',
+    'Diciembre',
+]
+
+
+def _parse_float(value, default=None):
+  if value is None or str(value).strip() == '':
+    return default
+  try:
+    return float(str(value).replace(',', '.').strip())
+  except (ValueError, TypeError):
+    return default
+
+
+def _obtener_mes_anio_desde_fecha(fecha_str):
+  fecha_dt = datetime.strptime(fecha_str, '%Y-%m-%d')
+  return MESES_NOMBRES[fecha_dt.month - 1], str(fecha_dt.year)
 
 
 # ==========================================
@@ -221,8 +251,13 @@ def procesar_archivo_factura(archivo):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
   if request.method == 'POST':
-    email = request.form.get('email')
-    password = request.form.get('password')
+    email = (request.form.get('email') or '').strip().lower()
+    password = request.form.get('password') or ''
+
+    if not email or not password:
+      flash('Completa tu correo electrónico y contraseña para iniciar sesión.', 'danger')
+      return redirect(url_for('login'))
+
     user = User.query.filter_by(email=email).first()
     if user and check_password_hash(user.password, password):
       login_user(user)
@@ -236,10 +271,14 @@ def login():
 
 @app.route('/register', methods=['POST'])
 def register():
-  name = request.form.get('name')
-  email = request.form.get('email')
-  password = request.form.get('password')
-  confirm_password = request.form.get('confirm_password')
+  name = (request.form.get('name') or '').strip()
+  email = (request.form.get('email') or '').strip().lower()
+  password = request.form.get('password') or ''
+  confirm_password = request.form.get('confirm_password') or ''
+
+  if not name or not email or not password:
+    flash('Completa todos los campos requeridos.', 'danger')
+    return redirect(url_for('login'))
 
   if password != confirm_password:
     flash('Las contraseñas no coinciden. Por favor, revísalas.', 'danger')
@@ -269,12 +308,12 @@ def login_google():
 @app.route('/login/google/authorized')
 def authorize_google():
   try:
-    token = google.authorize_access_token()
+    google.authorize_access_token()
     resp = google.get('https://www.googleapis.com/oauth2/v3/userinfo')
     user_info = resp.json()
 
-    email = user_info.get('email')
-    name = user_info.get('name')
+    email = (user_info.get('email') or '').strip().lower()
+    name = user_info.get('name') or 'Usuario Google'
 
     if not email:
       flash('No se pudo obtener el correo electrónico de Google.', 'danger')
@@ -291,7 +330,7 @@ def authorize_google():
     login_user(user)
     return redirect(url_for('dashboard'))
 
-  except Exception as e:
+  except Exception:
     flash('Ocurrió un error al autenticar con Google.', 'danger')
     return redirect(url_for('login'))
 
@@ -302,23 +341,8 @@ def authorize_google():
 @app.route('/')
 @login_required
 def dashboard():
-  meses_nombres = [
-      'Enero',
-      'Febrero',
-      'Marzo',
-      'Abril',
-      'Mayo',
-      'Junio',
-      'Julio',
-      'Agosto',
-      'Septiembre',
-      'Octubre',
-      'Noviembre',
-      'Diciembre',
-  ]
-  mes_actual = request.args.get(
-      'mes', meses_nombres[datetime.now().month - 1]
-  )
+  mes_param = request.args.get('mes')
+  mes_actual = mes_param if mes_param in MESES_NOMBRES else MESES_NOMBRES[datetime.now().month - 1]
   anio_actual = request.args.get('anio', str(datetime.now().year))
   active_tab = request.args.get('tab', 'tab-dashboard')
 
@@ -328,12 +352,12 @@ def dashboard():
   total_ingresos = sum(m.monto for m in movimientos if m.tipo == 'Ingreso')
   total_gastos = sum(m.monto for m in movimientos if m.tipo == 'Gasto')
 
-  idx_mes = meses_nombres.index(mes_actual)
+  idx_mes = MESES_NOMBRES.index(mes_actual)
   if idx_mes == 0:
     mes_anterior = 'Diciembre'
     anio_anterior = str(int(anio_actual) - 1)
   else:
-    mes_anterior = meses_nombres[idx_mes - 1]
+    mes_anterior = MESES_NOMBRES[idx_mes - 1]
     anio_anterior = anio_actual
 
   movs_ant = Movimiento.query.filter_by(
@@ -392,7 +416,11 @@ def dashboard():
       user_id=current_user.id
   ).all()
   todos_movimientos = Movimiento.query.filter_by(user_id=current_user.id).all()
-  notas_usuario = Nota.query.filter_by(user_id=current_user.id).all()
+  notas_usuario = (
+      Nota.query.filter_by(user_id=current_user.id)
+      .order_by(Nota.id.desc())
+      .all()
+  )
   nota_usuario = notas_usuario[0] if notas_usuario else None
 
   cuentas_ahorro = CuentaAhorro.query.filter_by(user_id=current_user.id).all()
@@ -404,7 +432,7 @@ def dashboard():
       name=current_user.name,
       mes_actual=mes_actual,
       anio_actual=anio_actual,
-      meses=meses_nombres,
+      meses=MESES_NOMBRES,
       active_tab=active_tab,
       total_ingresos=total_ingresos,
       total_gastos=total_gastos,
@@ -437,56 +465,50 @@ def dashboard():
 @app.route('/agregar_movimiento', methods=['POST'])
 @login_required
 def agregar_movimiento():
-  tipo = request.form.get('tipo')
-  fecha_str = request.form.get('fecha')
-  concepto = request.form.get('concepto')
-  categoria = request.form.get('categoria')
-  metodo = request.form.get('metodo')
   tab = request.form.get('tab', 'tab-dashboard')
+  try:
+    tipo = request.form.get('tipo') or 'Gasto'
+    fecha_str = (request.form.get('fecha') or '').strip()
+    concepto = (request.form.get('concepto') or '').strip()
+    categoria = (request.form.get('categoria') or '').strip()
+    metodo = (request.form.get('metodo') or 'Efectivo').strip()
 
-  archivo = request.files.get('archivo_factura')
-  monto_extraido = procesar_archivo_factura(archivo)
-  monto_form = request.form.get('monto')
+    if not fecha_str:
+      flash('Debes seleccionar una fecha válida para el movimiento.', 'danger')
+      return redirect(url_for('dashboard', tab=tab))
 
-  if monto_extraido and monto_extraido > 0:
-    monto = monto_extraido
-  elif monto_form:
-    monto = float(monto_form)
-  else:
-    monto = 0.01
+    archivo = request.files.get('archivo_factura')
+    monto_extraido = procesar_archivo_factura(archivo)
+    monto_form = _parse_float(request.form.get('monto'))
 
-  fecha_dt = datetime.strptime(fecha_str, '%Y-%m-%d')
-  meses_nombres = [
-      'Enero',
-      'Febrero',
-      'Marzo',
-      'Abril',
-      'Mayo',
-      'Junio',
-      'Julio',
-      'Agosto',
-      'Septiembre',
-      'Octubre',
-      'Noviembre',
-      'Diciembre',
-  ]
-  mes_str = meses_nombres[fecha_dt.month - 1]
-  anio_str = str(fecha_dt.year)
+    if monto_extraido and monto_extraido > 0:
+      monto = monto_extraido
+    elif monto_form is not None and monto_form > 0:
+      monto = monto_form
+    else:
+      flash('El monto del movimiento debe ser mayor a 0.00 o venir en una factura válida.', 'danger')
+      return redirect(url_for('dashboard', tab=tab))
 
-  nuevo_mov = Movimiento(
-      user_id=current_user.id,
-      fecha=fecha_str,
-      tipo=tipo,
-      monto=monto,
-      concepto=concepto,
-      categoria=categoria,
-      metodo=metodo,
-      mes=mes_str,
-      anio=anio_str,
-  )
-  db.session.add(nuevo_mov)
-  db.session.commit()
-  return redirect(url_for('dashboard', mes=mes_str, anio=anio_str, tab=tab))
+    mes_str, anio_str = _obtener_mes_anio_desde_fecha(fecha_str)
+
+    nuevo_mov = Movimiento(
+        user_id=current_user.id,
+        fecha=fecha_str,
+        tipo=tipo,
+        monto=monto,
+        concepto=concepto,
+        categoria=categoria,
+        metodo=metodo,
+        mes=mes_str,
+        anio=anio_str,
+    )
+    db.session.add(nuevo_mov)
+    db.session.commit()
+    return redirect(url_for('dashboard', mes=mes_str, anio=anio_str, tab=tab))
+  except Exception:
+    db.session.rollback()
+    flash('No se pudo registrar el movimiento. Verifica los datos ingresados.', 'danger')
+    return redirect(url_for('dashboard', tab=tab))
 
 
 @app.route('/editar_movimiento/<int:id>', methods=['POST'])
@@ -494,34 +516,30 @@ def agregar_movimiento():
 def editar_movimiento(id):
   mov = Movimiento.query.filter_by(id=id, user_id=current_user.id).first()
   tab = request.form.get('tab', 'tab-dashboard')
-  if mov:
-    mov.fecha = request.form.get('fecha')
-    mov.monto = float(request.form.get('monto'))
-    mov.concepto = request.form.get('concepto')
-    mov.categoria = request.form.get('categoria')
-    mov.metodo = request.form.get('metodo')
+  if not mov:
+    flash('El movimiento seleccionado no existe o no está permitido.', 'danger')
+    return redirect(url_for('dashboard', tab=tab))
 
-    fecha_dt = datetime.strptime(mov.fecha, '%Y-%m-%d')
-    meses_nombres = [
-        'Enero',
-        'Febrero',
-        'Marzo',
-        'Abril',
-        'Mayo',
-        'Junio',
-        'Julio',
-        'Agosto',
-        'Septiembre',
-        'Octubre',
-        'Noviembre',
-        'Diciembre',
-    ]
-    mov.mes = meses_nombres[fecha_dt.month - 1]
-    mov.anio = str(fecha_dt.year)
+  try:
+    nueva_fecha = (request.form.get('fecha') or mov.fecha).strip()
+    nuevo_monto = _parse_float(request.form.get('monto'))
+    if nuevo_monto is None or nuevo_monto <= 0:
+      flash('El monto debe ser mayor a 0.00 para guardar los cambios.', 'danger')
+      return redirect(url_for('dashboard', mes=mov.mes, anio=mov.anio, tab=tab))
+
+    mov.fecha = nueva_fecha
+    mov.monto = nuevo_monto
+    mov.concepto = (request.form.get('concepto') or '').strip()
+    mov.categoria = (request.form.get('categoria') or mov.categoria or '').strip()
+    mov.metodo = (request.form.get('metodo') or mov.metodo or 'Efectivo').strip()
+    mov.mes, mov.anio = _obtener_mes_anio_desde_fecha(nueva_fecha)
 
     db.session.commit()
     return redirect(url_for('dashboard', mes=mov.mes, anio=mov.anio, tab=tab))
-  return redirect(url_for('dashboard'))
+  except Exception:
+    db.session.rollback()
+    flash('No se pudo actualizar el movimiento.', 'danger')
+    return redirect(url_for('dashboard', mes=mov.mes, anio=mov.anio, tab=tab))
 
 
 @app.route('/eliminar_movimiento/<int:id>', methods=['POST'])
@@ -530,11 +548,17 @@ def eliminar_movimiento(id):
   mov = Movimiento.query.filter_by(id=id, user_id=current_user.id).first()
   tab = request.form.get('tab', 'tab-dashboard')
   if mov:
-    mes, anio = mov.mes, mov.anio
-    db.session.delete(mov)
-    db.session.commit()
-    return redirect(url_for('dashboard', mes=mes, anio=anio, tab=tab))
-  return redirect(url_for('dashboard'))
+    try:
+      mes, anio = mov.mes, mov.anio
+      db.session.delete(mov)
+      db.session.commit()
+      return redirect(url_for('dashboard', mes=mes, anio=anio, tab=tab))
+    except Exception:
+      db.session.rollback()
+      flash('No se pudo eliminar el movimiento.', 'danger')
+  else:
+    flash('El movimiento seleccionado no existe o no está permitido.', 'danger')
+  return redirect(url_for('dashboard', tab=tab))
 
 
 # ==========================================
@@ -543,26 +567,35 @@ def eliminar_movimiento(id):
 @app.route('/agregar_presupuesto', methods=['POST'])
 @login_required
 def agregar_presupuesto():
-  mes = request.form.get('mes')
-  anio = request.form.get('anio')
-  categoria = request.form.get('categoria')
-  limite = float(request.form.get('limite'))
+  mes = request.form.get('mes') or MESES_NOMBRES[datetime.now().month - 1]
+  anio = request.form.get('anio') or str(datetime.now().year)
+  try:
+    categoria = (request.form.get('categoria') or '').strip()
+    limite = _parse_float(request.form.get('limite'))
+    if not categoria or limite is None or limite <= 0:
+      flash('Ingresa un nombre de presupuesto y un límite mayor a 0.00.', 'danger')
+      return redirect(
+          url_for('dashboard', mes=mes, anio=anio, tab='tab-presupuestos')
+      )
 
-  pres = Presupuesto.query.filter_by(
-      user_id=current_user.id, mes=mes, anio=anio, categoria=categoria
-  ).first()
-  if pres:
-    pres.limite = limite
-  else:
-    nuevo_p = Presupuesto(
-        user_id=current_user.id,
-        mes=mes,
-        anio=anio,
-        categoria=categoria,
-        limite=limite,
-    )
-    db.session.add(nuevo_p)
-  db.session.commit()
+    pres = Presupuesto.query.filter_by(
+        user_id=current_user.id, mes=mes, anio=anio, categoria=categoria
+    ).first()
+    if pres:
+      pres.limite = limite
+    else:
+      nuevo_p = Presupuesto(
+          user_id=current_user.id,
+          mes=mes,
+          anio=anio,
+          categoria=categoria,
+          limite=limite,
+      )
+      db.session.add(nuevo_p)
+    db.session.commit()
+  except Exception:
+    db.session.rollback()
+    flash('No se pudo guardar el presupuesto.', 'danger')
   return redirect(
       url_for('dashboard', mes=mes, anio=anio, tab='tab-presupuestos')
   )
@@ -572,14 +605,31 @@ def agregar_presupuesto():
 @login_required
 def editar_presupuesto(id):
   pres = Presupuesto.query.filter_by(id=id, user_id=current_user.id).first()
-  if pres:
-    pres.categoria = request.form.get('categoria')
-    pres.limite = float(request.form.get('limite'))
+  if not pres:
+    flash('El presupuesto seleccionado no existe o no está permitido.', 'danger')
+    return redirect(url_for('dashboard', tab='tab-presupuestos'))
+
+  try:
+    categoria = (request.form.get('categoria') or '').strip()
+    limite = _parse_float(request.form.get('limite'))
+    if not categoria or limite is None or limite <= 0:
+      flash('El nombre del presupuesto es obligatorio y el límite debe ser mayor a 0.00.', 'danger')
+      return redirect(
+          url_for('dashboard', mes=pres.mes, anio=pres.anio, tab='tab-presupuestos')
+      )
+
+    pres.categoria = categoria
+    pres.limite = limite
     db.session.commit()
     return redirect(
         url_for('dashboard', mes=pres.mes, anio=pres.anio, tab='tab-presupuestos')
     )
-  return redirect(url_for('dashboard', tab='tab-presupuestos'))
+  except Exception:
+    db.session.rollback()
+    flash('No se pudo actualizar el presupuesto.', 'danger')
+    return redirect(
+        url_for('dashboard', mes=pres.mes, anio=pres.anio, tab='tab-presupuestos')
+    )
 
 
 @app.route('/eliminar_presupuesto/<int:id>', methods=['POST'])
@@ -587,12 +637,18 @@ def editar_presupuesto(id):
 def eliminar_presupuesto(id):
   pres = Presupuesto.query.filter_by(id=id, user_id=current_user.id).first()
   if pres:
-    mes, anio = pres.mes, pres.anio
-    db.session.delete(pres)
-    db.session.commit()
-    return redirect(
-        url_for('dashboard', mes=mes, anio=anio, tab='tab-presupuestos')
-    )
+    try:
+      mes, anio = pres.mes, pres.anio
+      db.session.delete(pres)
+      db.session.commit()
+      return redirect(
+          url_for('dashboard', mes=mes, anio=anio, tab='tab-presupuestos')
+      )
+    except Exception:
+      db.session.rollback()
+      flash('No se pudo eliminar el presupuesto.', 'danger')
+  else:
+    flash('El presupuesto seleccionado no existe o no está permitido.', 'danger')
   return redirect(url_for('dashboard', tab='tab-presupuestos'))
 
 
@@ -602,16 +658,23 @@ def eliminar_presupuesto(id):
 @app.route('/agregar_deuda', methods=['POST'])
 @login_required
 def agregar_deuda():
-  descripcion = request.form.get('descripcion')
-  monto = float(request.form.get('monto'))
-  nueva_d = Deuda(
-      user_id=current_user.id,
-      descripcion=descripcion,
-      monto_inicial=monto,
-      monto=monto,
-  )
-  db.session.add(nueva_d)
-  db.session.commit()
+  try:
+    descripcion = (request.form.get('descripcion') or '').strip()
+    monto = _parse_float(request.form.get('monto'))
+    if descripcion and monto is not None and monto > 0:
+      nueva_d = Deuda(
+          user_id=current_user.id,
+          descripcion=descripcion,
+          monto_inicial=monto,
+          monto=monto,
+      )
+      db.session.add(nueva_d)
+      db.session.commit()
+    else:
+      flash('Ingresa una descripción y un monto inicial mayor a 0.00 para la deuda.', 'danger')
+  except Exception:
+    db.session.rollback()
+    flash('No se pudo registrar la deuda.', 'danger')
   return redirect(url_for('dashboard', tab='tab-deudas'))
 
 
@@ -620,9 +683,20 @@ def agregar_deuda():
 def editar_deuda(id):
   deuda = Deuda.query.filter_by(id=id, user_id=current_user.id).first()
   if deuda:
-    deuda.descripcion = request.form.get('descripcion')
-    deuda.monto_inicial = float(request.form.get('monto_inicial'))
-    db.session.commit()
+    try:
+      descripcion = (request.form.get('descripcion') or '').strip()
+      monto_inicial = _parse_float(request.form.get('monto_inicial'))
+      if descripcion and monto_inicial is not None and monto_inicial > 0:
+        deuda.descripcion = descripcion
+        deuda.monto_inicial = monto_inicial
+        db.session.commit()
+      else:
+        flash('La descripción es obligatoria y el monto inicial debe ser mayor a 0.00.', 'danger')
+    except Exception:
+      db.session.rollback()
+      flash('No se pudo actualizar la deuda.', 'danger')
+  else:
+    flash('La deuda seleccionada no existe o no está permitido.', 'danger')
   return redirect(url_for('dashboard', tab='tab-deudas'))
 
 
@@ -631,26 +705,38 @@ def editar_deuda(id):
 def eliminar_deuda(id):
   deuda = Deuda.query.filter_by(id=id, user_id=current_user.id).first()
   if deuda:
-    AbonoDeuda.query.filter_by(deuda_id=id).delete()
-    db.session.delete(deuda)
-    db.session.commit()
+    try:
+      AbonoDeuda.query.filter_by(deuda_id=id, user_id=current_user.id).delete()
+      db.session.delete(deuda)
+      db.session.commit()
+    except Exception:
+      db.session.rollback()
+      flash('No se pudo eliminar la deuda.', 'danger')
+  else:
+    flash('La deuda seleccionada no existe o no está permitido.', 'danger')
   return redirect(url_for('dashboard', tab='tab-deudas'))
 
 
 @app.route('/agregar_abono', methods=['POST'])
 @login_required
 def agregar_abono():
-  deuda_id = int(request.form.get('deuda_id'))
-  monto = float(request.form.get('monto'))
-  fecha = request.form.get('fecha')
+  try:
+    deuda_id = int(request.form.get('deuda_id'))
+    monto = _parse_float(request.form.get('monto'))
+    fecha = (request.form.get('fecha') or '').strip()
 
-  deuda = Deuda.query.filter_by(id=deuda_id, user_id=current_user.id).first()
-  if deuda:
-    nuevo_ab = AbonoDeuda(
-        user_id=current_user.id, deuda_id=deuda_id, fecha=fecha, monto=monto
-    )
-    db.session.add(nuevo_ab)
-    db.session.commit()
+    deuda = Deuda.query.filter_by(id=deuda_id, user_id=current_user.id).first()
+    if deuda and monto is not None and monto > 0 and fecha:
+      nuevo_ab = AbonoDeuda(
+          user_id=current_user.id, deuda_id=deuda_id, fecha=fecha, monto=monto
+      )
+      db.session.add(nuevo_ab)
+      db.session.commit()
+    else:
+      flash('Selecciona una deuda válida, una fecha y un monto mayor a 0.00 para el abono.', 'danger')
+  except Exception:
+    db.session.rollback()
+    flash('No se pudo registrar el abono.', 'danger')
   return redirect(url_for('dashboard', tab='tab-deudas'))
 
 
@@ -659,10 +745,25 @@ def agregar_abono():
 def editar_abono(id):
   abono = AbonoDeuda.query.filter_by(id=id, user_id=current_user.id).first()
   if abono:
-    abono.monto = float(request.form.get('monto'))
-    abono.fecha = request.form.get('fecha')
-    abono.deuda_id = int(request.form.get('deuda_id'))
-    db.session.commit()
+    try:
+      monto = _parse_float(request.form.get('monto'))
+      fecha = (request.form.get('fecha') or '').strip()
+      deuda_id = int(request.form.get('deuda_id'))
+      deuda_valida = Deuda.query.filter_by(
+          id=deuda_id, user_id=current_user.id
+      ).first()
+      if deuda_valida and monto is not None and monto > 0 and fecha:
+        abono.monto = monto
+        abono.fecha = fecha
+        abono.deuda_id = deuda_id
+        db.session.commit()
+      else:
+        flash('Verifica la deuda asociada, la fecha y un monto mayor a 0.00 para el abono.', 'danger')
+    except Exception:
+      db.session.rollback()
+      flash('No se pudo actualizar el abono.', 'danger')
+  else:
+    flash('El abono seleccionado no existe o no está permitido.', 'danger')
   return redirect(url_for('dashboard', tab='tab-deudas'))
 
 
@@ -671,8 +772,14 @@ def editar_abono(id):
 def eliminar_abono(id):
   abono = AbonoDeuda.query.filter_by(id=id, user_id=current_user.id).first()
   if abono:
-    db.session.delete(abono)
-    db.session.commit()
+    try:
+      db.session.delete(abono)
+      db.session.commit()
+    except Exception:
+      db.session.rollback()
+      flash('No se pudo eliminar el abono.', 'danger')
+  else:
+    flash('El abono seleccionado no existe o no está permitido.', 'danger')
   return redirect(url_for('dashboard', tab='tab-deudas'))
 
 
@@ -682,31 +789,47 @@ def eliminar_abono(id):
 @app.route('/agregar_categoria_ingreso', methods=['POST'])
 @login_required
 def agregar_categoria_ingreso():
-  categoria = request.form.get('categoria')
+  categoria = (request.form.get('categoria') or '').strip()
   if categoria:
-    existe = CategoriaIngreso.query.filter_by(
-        user_id=current_user.id, categoria=categoria
-    ).first()
-    if not existe:
-      nueva_c = CategoriaIngreso(
+    try:
+      existe = CategoriaIngreso.query.filter_by(
           user_id=current_user.id, categoria=categoria
-      )
-      db.session.add(nueva_c)
-      db.session.commit()
+      ).first()
+      if not existe:
+        nueva_c = CategoriaIngreso(
+            user_id=current_user.id, categoria=categoria
+        )
+        db.session.add(nueva_c)
+        db.session.commit()
+      else:
+        flash('Esa categoría de ingreso ya existe.', 'danger')
+    except Exception:
+      db.session.rollback()
+      flash('No se pudo añadir la categoría de ingreso.', 'danger')
+  else:
+    flash('Ingresa un nombre válido para la categoría de ingreso.', 'danger')
   return redirect(url_for('dashboard', tab='tab-ingresos'))
 
 
 @app.route('/eliminar_categoria_ingreso', methods=['POST'])
 @login_required
 def eliminar_categoria_ingreso():
-  categoria = request.form.get('categoria')
+  categoria = (request.form.get('categoria') or '').strip()
   if categoria:
-    Cat = CategoriaIngreso.query.filter_by(
-        user_id=current_user.id, categoria=categoria
-    ).first()
-    if Cat:
-      db.session.delete(Cat)
-      db.session.commit()
+    try:
+      cat = CategoriaIngreso.query.filter_by(
+          user_id=current_user.id, categoria=categoria
+      ).first()
+      if cat:
+        db.session.delete(cat)
+        db.session.commit()
+      else:
+        flash('La categoría seleccionada no existe.', 'danger')
+    except Exception:
+      db.session.rollback()
+      flash('No se pudo borrar la categoría de ingreso.', 'danger')
+  else:
+    flash('Selecciona una categoría de ingreso para eliminar.', 'danger')
   return redirect(url_for('dashboard', tab='tab-ingresos'))
 
 
@@ -717,17 +840,21 @@ def eliminar_categoria_ingreso():
 @login_required
 def agregar_cuenta_ahorro():
   try:
-    nombre_cuenta = request.form.get('nombre_cuenta')
-    saldo_actual = float(request.form.get('saldo_actual', 0.0))
-    nueva_cuenta = CuentaAhorro(
-        user_id=current_user.id,
-        nombre_cuenta=nombre_cuenta,
-        saldo_actual=saldo_actual,
-    )
-    db.session.add(nueva_cuenta)
-    db.session.commit()
+    nombre_cuenta = (request.form.get('nombre_cuenta') or '').strip()
+    saldo_actual = _parse_float(request.form.get('saldo_actual'), 0.0)
+    if nombre_cuenta and saldo_actual is not None and saldo_actual >= 0:
+      nueva_cuenta = CuentaAhorro(
+          user_id=current_user.id,
+          nombre_cuenta=nombre_cuenta,
+          saldo_actual=saldo_actual,
+      )
+      db.session.add(nueva_cuenta)
+      db.session.commit()
+    else:
+      flash('Ingresa un nombre de cuenta y un saldo actual igual o mayor a 0.00.', 'danger')
   except Exception:
     db.session.rollback()
+    flash('No se pudo guardar la cuenta de ahorro.', 'danger')
   return redirect(url_for('dashboard', tab='tab-ahorros', active_section='ahorros'))
 
 
@@ -738,12 +865,17 @@ def editar_cuenta_ahorro(id):
     cuenta = CuentaAhorro.query.filter_by(
         id=id, user_id=current_user.id
     ).first()
-    if cuenta:
-      cuenta.nombre_cuenta = request.form.get('nombre_cuenta')
-      cuenta.saldo_actual = float(request.form.get('saldo_actual', 0.0))
+    nombre_cuenta = (request.form.get('nombre_cuenta') or '').strip()
+    saldo_actual = _parse_float(request.form.get('saldo_actual'), 0.0)
+    if cuenta and nombre_cuenta and saldo_actual is not None and saldo_actual >= 0:
+      cuenta.nombre_cuenta = nombre_cuenta
+      cuenta.saldo_actual = saldo_actual
       db.session.commit()
+    else:
+      flash('Selecciona una cuenta válida y verifica que el nombre y el saldo no sean inválidos.', 'danger')
   except Exception:
     db.session.rollback()
+    flash('No se pudo actualizar la cuenta de ahorro.', 'danger')
   return redirect(url_for('dashboard', tab='tab-ahorros', active_section='ahorros'))
 
 
@@ -757,8 +889,11 @@ def eliminar_cuenta_ahorro(id):
     if cuenta:
       db.session.delete(cuenta)
       db.session.commit()
+    else:
+      flash('La cuenta de ahorro seleccionada no existe o no está permitida.', 'danger')
   except Exception:
     db.session.rollback()
+    flash('No se pudo eliminar la cuenta de ahorro.', 'danger')
   return redirect(url_for('dashboard', tab='tab-ahorros', active_section='ahorros'))
 
 
@@ -766,21 +901,31 @@ def eliminar_cuenta_ahorro(id):
 @login_required
 def agregar_meta_ahorro():
   try:
-    nombre_meta = request.form.get('nombre_meta')
-    monto_objetivo = float(request.form.get('monto_objetivo', 0.0))
-    monto_actual = float(request.form.get('monto_actual', 0.0))
-    fecha_limite = request.form.get('fecha_limite')
-    nueva_meta = MetaAhorro(
-        user_id=current_user.id,
-        nombre_meta=nombre_meta,
-        monto_objetivo=monto_objetivo,
-        monto_actual=monto_actual,
-        fecha_limite=fecha_limite,
-    )
-    db.session.add(nueva_meta)
-    db.session.commit()
+    nombre_meta = (request.form.get('nombre_meta') or '').strip()
+    monto_objetivo = _parse_float(request.form.get('monto_objetivo'), 0.0)
+    monto_actual = _parse_float(request.form.get('monto_actual'), 0.0)
+    fecha_limite = (request.form.get('fecha_limite') or '').strip()
+    if (
+        nombre_meta
+        and monto_objetivo is not None
+        and monto_objetivo > 0
+        and monto_actual is not None
+        and monto_actual >= 0
+    ):
+      nueva_meta = MetaAhorro(
+          user_id=current_user.id,
+          nombre_meta=nombre_meta,
+          monto_objetivo=monto_objetivo,
+          monto_actual=monto_actual,
+          fecha_limite=fecha_limite,
+      )
+      db.session.add(nueva_meta)
+      db.session.commit()
+    else:
+      flash('Ingresa un nombre, un monto objetivo mayor a 0.00 y un monto inicial válido.', 'danger')
   except Exception:
     db.session.rollback()
+    flash('No se pudo guardar la meta de ahorro.', 'danger')
   return redirect(url_for('dashboard', tab='tab-ahorros', active_section='ahorros'))
 
 
@@ -789,14 +934,28 @@ def agregar_meta_ahorro():
 def editar_meta_ahorro(id):
   try:
     meta = MetaAhorro.query.filter_by(id=id, user_id=current_user.id).first()
-    if meta:
-      meta.nombre_meta = request.form.get('nombre_meta')
-      meta.monto_objetivo = float(request.form.get('monto_objetivo', 0.0))
-      meta.monto_actual = float(request.form.get('monto_actual', 0.0))
-      meta.fecha_limite = request.form.get('fecha_limite')
+    nombre_meta = (request.form.get('nombre_meta') or '').strip()
+    monto_objetivo = _parse_float(request.form.get('monto_objetivo'), 0.0)
+    monto_actual = _parse_float(request.form.get('monto_actual'), 0.0)
+    fecha_limite = (request.form.get('fecha_limite') or '').strip()
+    if (
+        meta
+        and nombre_meta
+        and monto_objetivo is not None
+        and monto_objetivo > 0
+        and monto_actual is not None
+        and monto_actual >= 0
+    ):
+      meta.nombre_meta = nombre_meta
+      meta.monto_objetivo = monto_objetivo
+      meta.monto_actual = monto_actual
+      meta.fecha_limite = fecha_limite
       db.session.commit()
+    else:
+      flash('Selecciona una meta válida y verifica que el objetivo sea mayor a 0.00.', 'danger')
   except Exception:
     db.session.rollback()
+    flash('No se pudo actualizar la meta de ahorro.', 'danger')
   return redirect(url_for('dashboard', tab='tab-ahorros', active_section='ahorros'))
 
 
@@ -806,11 +965,14 @@ def eliminar_meta_ahorro(id):
   try:
     meta = MetaAhorro.query.filter_by(id=id, user_id=current_user.id).first()
     if meta:
-      AbonoMeta.query.filter_by(meta_id=id).delete()
+      AbonoMeta.query.filter_by(meta_id=id, user_id=current_user.id).delete()
       db.session.delete(meta)
       db.session.commit()
+    else:
+      flash('La meta de ahorro seleccionada no existe o no está permitida.', 'danger')
   except Exception:
     db.session.rollback()
+    flash('No se pudo eliminar la meta de ahorro.', 'danger')
   return redirect(url_for('dashboard', tab='tab-ahorros', active_section='ahorros'))
 
 
@@ -819,19 +981,22 @@ def eliminar_meta_ahorro(id):
 def agregar_abono_meta():
   try:
     meta_id = int(request.form.get('meta_id'))
-    monto = float(request.form.get('monto', 0.0))
-    fecha = request.form.get('fecha')
+    monto = _parse_float(request.form.get('monto'), 0.0)
+    fecha = (request.form.get('fecha') or '').strip()
 
     meta = MetaAhorro.query.filter_by(id=meta_id, user_id=current_user.id).first()
-    if meta and monto > 0:
+    if meta and monto is not None and monto > 0 and fecha:
       nuevo_abono = AbonoMeta(
           user_id=current_user.id, meta_id=meta_id, fecha=fecha, monto=monto
       )
       db.session.add(nuevo_abono)
       meta.monto_actual += monto
       db.session.commit()
+    else:
+      flash('Selecciona una meta válida, una fecha y un monto mayor a 0.00 para abonar.', 'danger')
   except Exception:
     db.session.rollback()
+    flash('No se pudo registrar el abono a la meta.', 'danger')
   return redirect(url_for('dashboard', tab='tab-ahorros', active_section='ahorros'))
 
 
@@ -843,10 +1008,16 @@ def agregar_abono_meta():
 def api_crear_nota():
   try:
     data = request.get_json(silent=True) or {}
-    titulo = data.get('titulo', 'Nueva nota')
+    titulo = (data.get('titulo') or '').strip()
+    if not titulo:
+      return (
+          jsonify({'status': 'error', 'message': 'El título es obligatorio.'}),
+          400,
+      )
+
     contenido = data.get('contenido', '')
-    etiquetas = data.get('etiquetas', '')
-    fecha = data.get('fecha', '')
+    etiquetas = (data.get('etiquetas') or '').strip()
+    fecha = (data.get('fecha') or '').strip()
     es_checklist = bool(data.get('es_checklist', False))
 
     nueva_nota = Nota(
@@ -892,13 +1063,19 @@ def api_actualizar_nota(id):
 
     data = request.get_json(silent=True) or {}
     if 'titulo' in data:
-      nota.titulo = data['titulo']
+      titulo_limpio = (data['titulo'] or '').strip()
+      if not titulo_limpio:
+        return (
+            jsonify({'status': 'error', 'message': 'El título no puede estar vacío.'}),
+            400,
+        )
+      nota.titulo = titulo_limpio
     if 'contenido' in data:
       nota.contenido = data['contenido']
     if 'etiquetas' in data:
-      nota.etiquetas = data['etiquetas']
+      nota.etiquetas = (data['etiquetas'] or '').strip()
     if 'fecha' in data:
-      nota.fecha = data['fecha']
+      nota.fecha = (data['fecha'] or '').strip()
     if 'es_checklist' in data:
       nota.es_checklist = bool(data['es_checklist'])
 
@@ -997,7 +1174,7 @@ def logout():
 
 
 with app.app_context():
-    db.create_all()
+  db.create_all()
 
 if __name__ == '__main__':
-    app.run(debug=True, use_reload=False)
+  app.run(debug=True, use_reloader=False)
